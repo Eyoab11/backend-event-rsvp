@@ -1,0 +1,101 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Event {
+  id                   String   @id @default(cuid())
+  eventName            String
+  description          String?
+  eventDate            DateTime
+  eventStartTime       String   // Format: "19:00"
+  eventEndTime         String   // Format: "23:00"
+  venueName            String
+  venueAddress         String
+  venueCity            String
+  venueState           String
+  venueZipCode         String
+  venueLatitude        Float?
+  venueLongitude       Float?
+  capacity             Int
+  currentRegistrations Int      @default(0)
+  waitlistEnabled      Boolean  @default(true)
+  registrationOpen     Boolean  @default(true)
+  dressCode            String
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  
+  invites              Invite[]
+  attendees            Attendee[]
+  
+  @@map("events")
+}
+
+model Invite {
+  id         String      @id @default(cuid())
+  email      String
+  token      String      @unique
+  isUsed     Boolean     @default(false)
+  expiresAt  DateTime
+  inviteType InviteType
+  eventId    String
+  createdAt  DateTime    @default(now())
+  
+  event      Event       @relation(fields: [eventId], references: [id])
+  attendee   Attendee?
+  
+  @@map("invites")
+}
+
+model Attendee {
+  id               String         @id @default(cuid())
+  name             String
+  company          String
+  title            String
+  email            String
+  status           AttendeeStatus @default(CONFIRMED)
+  qrCode           String         @unique
+  registrationId   String         @unique // Format: "REG-12345678"
+  inviteId         String         @unique
+  eventId          String
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  
+  invite           Invite         @relation(fields: [inviteId], references: [id])
+  event            Event          @relation(fields: [eventId], references: [id])
+  plusOne          PlusOne?
+  
+  @@map("attendees")
+}
+
+model PlusOne {
+  id         String   @id @default(cuid())
+  name       String
+  company    String
+  title      String
+  email      String
+  attendeeId String   @unique
+  createdAt  DateTime @default(now())
+  
+  attendee   Attendee @relation(fields: [attendeeId], references: [id])
+  
+  @@map("plus_ones")
+}
+
+enum InviteType {
+  VIP
+  PARTNER
+  GENERAL
+}
+
+enum AttendeeStatus {
+  CONFIRMED
+  WAITLISTED
+  CANCELLED
+}
