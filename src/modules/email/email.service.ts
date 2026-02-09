@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Event, Attendee, PlusOne } from '@prisma/client';
+import { Resend } from 'resend';
 
 export interface ConfirmationEmailData {
   event: Event;
@@ -26,79 +27,57 @@ export interface WaitlistEmailData {
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
-  private apiKey: string | undefined;
+  private resend: Resend | undefined;
   private fromEmail: string;
   private frontendUrl: string;
 
   constructor() {
-    this.apiKey = process.env.BREVO_API_KEY;
-    this.fromEmail = process.env.FROM_EMAIL || 'noreply@levyeromedia.com';
+    const apiKey = process.env.RESEND_API_KEY;
+    this.fromEmail = process.env.FROM_EMAIL || 'onboarding@resend.dev';
     this.frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
 
-    if (!this.apiKey) {
-      this.logger.warn('BREVO_API_KEY not set. Email functionality will be disabled.');
+    if (!apiKey) {
+      this.logger.warn('RESEND_API_KEY not set. Email functionality will be disabled.');
       return;
     }
 
-    this.logger.log('Email service initialized with Brevo API');
+    this.resend = new Resend(apiKey);
+    this.logger.log('Email service initialized with Resend API');
   }
 
   /**
-   * Send email using Brevo API with inline images support
+   * Send email using Resend API with attachments support
    */
   private async sendEmail(
     to: string, 
     subject: string, 
     htmlContent: string, 
     textContent: string, 
-    attachments?: Array<{ name: string; content: string }>,
-    inlineImages?: Array<{ name: string; content: string; cid: string }>
+    attachments?: Array<{ filename: string; content: Buffer }>,
   ): Promise<void> {
-    if (!this.apiKey) {
+    if (!this.resend) {
       this.logger.warn('Email service not configured. Skipping email.');
       return;
     }
 
     try {
-      const payload: any = {
-        sender: { email: this.fromEmail },
-        to: [{ email: to }],
+      const { data, error } = await this.resend.emails.send({
+        from: this.fromEmail,
+        to: [to],
         subject,
-        htmlContent,
-        textContent,
-      };
-
-      // Add regular attachments (like calendar files)
-      if (attachments && attachments.length > 0) {
-        payload.attachment = attachments;
-      }
-
-      // Add inline images (like QR codes) - Brevo uses 'attachment' with CID
-      if (inlineImages && inlineImages.length > 0) {
-        if (!payload.attachment) {
-          payload.attachment = [];
-        }
-        // Add inline images to attachments array
-        payload.attachment = [...payload.attachment, ...inlineImages];
-      }
-
-      const response = await fetch('https://api.brevo.com/v3/smtp/email', {
-        method: 'POST',
-        headers: {
-          'accept': 'application/json',
-          'api-key': this.apiKey,
-          'content-type': 'application/json',
-        },
-        body: JSON.stringify(payload),
+        html: htmlContent,
+        text: textContent,
+        attachments: attachments?.map(att => ({
+          filename: att.filename,
+          content: att.content,
+        })),
       });
 
-      if (!response.ok) {
-        const error = await response.text();
-        throw new Error(`Brevo API error: ${response.status} - ${error}`);
+      if (error) {
+        throw new Error(`Resend API error: ${error.message}`);
       }
 
-      const result = await response.json();
-      this.logger.log(`Email sent successfully to ${to}, messageId: ${result.messageId}`);
+      this.logger.log(`Email sent successfully to ${to}, messageId: ${data?.id}`);
     } catch (error) {
       this.logger.error(`Failed to send email: ${error.message}`, error.stack);
       throw error;
@@ -109,7 +88,7 @@ export class EmailService {
    * Send confirmation email to attendee
    */
   async sendConfirmationEmail(data: ConfirmationEmailData): Promise<void> {
-    if (!this.apiKey) {
+    if (!this.resend) {
       this.logger.warn('Email service not configured. Skipping confirmation email.');
       return;
     }
@@ -120,25 +99,23 @@ export class EmailService {
       const htmlContent = this.generateConfirmationEmailHtml(data);
       const textContent = this.generateConfirmationEmailText(data);
 
-      const attachments: Array<{ name: string; content: string }> = [];
-      const inlineImages: Array<{ name: string; content: string; cid: string }> = [];
+      const attachments: Array<{ filename: string; content: Buffer }> = [];
       
       // Add calendar attachment if provided
       if (calendarFile) {
         attachments.push({
-          name: `${event.eventName.toLowerCase().replace(/\s+/g, '-')}.ics`,
-          content: Buffer.from(calendarFile).toString('base64'),
+          filename: `${event.eventName.toLowerCase().replace(/\s+/g, '-')}.ics`,
+          content: Buffer.from(calendarFile),
         });
       }
 
-      // Add QR code as inline image if provided
+      // Add QR code as attachment if provided
       if (qrCodeImage) {
         // Extract base64 content from data URL (remove "data:image/png;base64," prefix)
         const base64Content = qrCodeImage.replace(/^data:image\/\w+;base64,/, '');
-        inlineImages.push({
-          name: 'qr-code.png',
-          content: base64Content,
-          cid: 'qrcode@attendee',
+        attachments.push({
+          filename: 'qr-code.png',
+          content: Buffer.from(base64Content, 'base64'),
         });
       }
 
@@ -147,8 +124,7 @@ export class EmailService {
         `Confirmed: ${event.eventName}`,
         htmlContent,
         textContent,
-        attachments.length > 0 ? attachments : undefined,
-        inlineImages.length > 0 ? inlineImages : undefined
+        attachments.length > 0 ? attachments : undefined
       );
 
       this.logger.log(`Confirmation email sent to ${attendee.email}`);
@@ -162,7 +138,7 @@ export class EmailService {
    * Send waitlist email to attendee
    */
   async sendWaitlistEmail(data: WaitlistEmailData): Promise<void> {
-    if (!this.apiKey) {
+    if (!this.resend) {
       this.logger.warn('Email service not configured. Skipping waitlist email.');
       return;
     }
@@ -191,7 +167,7 @@ export class EmailService {
    * Send confirmation email to plus-one with their own QR code
    */
   async sendPlusOneConfirmationEmail(data: PlusOneConfirmationEmailData): Promise<void> {
-    if (!this.apiKey) {
+    if (!this.resend) {
       this.logger.warn('Email service not configured. Skipping plus-one confirmation email.');
       return;
     }
@@ -202,25 +178,23 @@ export class EmailService {
       const htmlContent = this.generatePlusOneConfirmationEmailHtml(data);
       const textContent = this.generatePlusOneConfirmationEmailText(data);
 
-      const attachments: Array<{ name: string; content: string }> = [];
-      const inlineImages: Array<{ name: string; content: string; cid: string }> = [];
+      const attachments: Array<{ filename: string; content: Buffer }> = [];
       
       // Add calendar attachment if provided
       if (calendarFile) {
         attachments.push({
-          name: `${event.eventName.toLowerCase().replace(/\s+/g, '-')}.ics`,
-          content: Buffer.from(calendarFile).toString('base64'),
+          filename: `${event.eventName.toLowerCase().replace(/\s+/g, '-')}.ics`,
+          content: Buffer.from(calendarFile),
         });
       }
 
-      // Add QR code as inline image if provided
+      // Add QR code as attachment if provided
       if (qrCodeImage) {
         // Extract base64 content from data URL (remove "data:image/png;base64," prefix)
         const base64Content = qrCodeImage.replace(/^data:image\/\w+;base64,/, '');
-        inlineImages.push({
-          name: 'qr-code-plusone.png',
-          content: base64Content,
-          cid: 'qrcode@plusone',
+        attachments.push({
+          filename: 'qr-code-plusone.png',
+          content: Buffer.from(base64Content, 'base64'),
         });
       }
 
@@ -229,8 +203,7 @@ export class EmailService {
         `Confirmed: ${event.eventName}`,
         htmlContent,
         textContent,
-        attachments.length > 0 ? attachments : undefined,
-        inlineImages.length > 0 ? inlineImages : undefined
+        attachments.length > 0 ? attachments : undefined
       );
 
       this.logger.log(`Plus-one confirmation email sent to ${plusOne.email}`);
@@ -244,7 +217,7 @@ export class EmailService {
    * Send invitation email
    */
   async sendInvitationEmail(to: string, subject: string, htmlContent: string, textContent: string): Promise<void> {
-    if (!this.apiKey) {
+    if (!this.resend) {
       this.logger.warn('Email service not configured. Skipping invitation email.');
       return;
     }

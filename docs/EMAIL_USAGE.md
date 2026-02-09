@@ -7,17 +7,21 @@ The Email module handles sending confirmation and waitlist emails to attendees u
 Add these environment variables to your `.env` file:
 
 ```env
-EMAIL_API_KEY="your-resend-api-key"
-FROM_EMAIL="noreply@levyeromedia.com"
+RESEND_API_KEY="re_xxxxxxxxx"
+FROM_EMAIL="Events <noreply@yourdomain.com>"
 FRONTEND_URL="http://localhost:3000"
 ```
 
 ### Getting a Resend API Key
 
 1. Sign up at [resend.com](https://resend.com)
-2. Verify your domain or use their test domain
+2. **Verify your domain** (required for production)
+   - Add DNS records (SPF, DKIM, DMARC)
+   - Wait for verification (usually a few minutes)
 3. Create an API key in the dashboard
 4. Add it to your `.env` file
+
+**Important:** For production, you must verify your domain. The `FROM_EMAIL` must use your verified domain.
 
 ## Features
 
@@ -28,7 +32,7 @@ Sent when an attendee successfully registers and is confirmed.
 - Event details (date, time, venue, dress code)
 - Attendee information and registration ID
 - Plus-one details (if applicable)
-- Link to view QR code
+- QR code attachment (PNG image)
 - Calendar file attachment (.ics)
 - Branded HTML template
 
@@ -53,8 +57,8 @@ Both emails include:
 - Purple gradient header
 - Event details in a highlighted box
 - Registration information section
-- Important notice about QR code
-- Call-to-action button to view QR code
+- Important notice about QR code attachment
+- Professional, branded design
 
 ### Waitlist Email Design
 - Pink/red gradient header
@@ -95,20 +99,21 @@ if (status === AttendeeStatus.CONFIRMED) {
 ## Error Handling
 
 The email service includes graceful error handling:
-- If `EMAIL_API_KEY` is not set, emails are skipped with a warning log
+- If `RESEND_API_KEY` is not set, emails are skipped with a warning log
 - Email failures don't prevent registration from completing
 - All errors are logged for debugging
 
 ## Testing
 
 ### Without Real Emails (Development)
-Simply don't set `EMAIL_API_KEY` in your `.env` file. The service will log warnings but won't fail.
+Simply don't set `RESEND_API_KEY` in your `.env` file. The service will log warnings but won't fail.
 
 ### With Real Emails (Testing)
 1. Get a Resend API key
-2. Add it to `.env`
-3. Use Resend's test domain or verify your own domain
-4. Submit an RSVP and check your email
+2. Verify your domain in Resend dashboard
+3. Add `RESEND_API_KEY` to `.env`
+4. Set `FROM_EMAIL` to use your verified domain
+5. Submit an RSVP and check your email
 
 ### Unit Tests
 Run the email service tests:

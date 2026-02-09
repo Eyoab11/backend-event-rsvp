@@ -7,7 +7,7 @@ A robust NestJS-based backend API for managing event registrations, invitations,
 - **Event Management**: Create and manage events with capacity limits and waitlist support
 - **Invitation System**: Generate unique invitation tokens with expiration dates
 - **RSVP Processing**: Handle attendee registrations with plus-one support
-- **Email Notifications**: Automated confirmation and waitlist emails via Brevo
+- **Email Notifications**: Automated confirmation and waitlist emails via Resend
 - **QR Code Generation**: Unique QR codes for each attendee for event check-in
 - **Calendar Integration**: Generate .ics calendar files for attendees
 - **Google Sheets Sync**: Real-time attendee data synchronization (optional)
@@ -19,7 +19,7 @@ A robust NestJS-based backend API for managing event registrations, invitations,
 
 - **Framework**: NestJS 11
 - **Database**: PostgreSQL with Prisma ORM
-- **Email Service**: Brevo (formerly Sendinblue)
+- **Email Service**: Resend
 - **Authentication**: JWT
 - **QR Codes**: qrcode library
 - **Calendar**: ics library
@@ -29,7 +29,7 @@ A robust NestJS-based backend API for managing event registrations, invitations,
 
 - Node.js 18+ and npm
 - PostgreSQL database
-- Brevo account with API key
+- Resend account with API key (and verified domain)
 - (Optional) Google Cloud project with Sheets API enabled
 
 ## Installation
@@ -62,9 +62,11 @@ A robust NestJS-based backend API for managing event registrations, invitations,
    ADMIN_EMAIL="admin@example.com"
    ADMIN_PASSWORD="admin123"
    
-   # Email Service (Brevo)
-   BREVO_API_KEY="your-brevo-api-key-here"
-   FROM_EMAIL="noreply@yourdomain.com"
+   # Email Service (Resend)
+   # Get your API key from: https://resend.com/api-keys
+   # You must verify your domain first: https://resend.com/domains
+   RESEND_API_KEY="re_xxxxxxxxx"
+   FROM_EMAIL="Events <noreply@yourdomain.com>"
    
    # Frontend URLs
    FRONTEND_URL="http://localhost:3000"
@@ -192,7 +194,7 @@ backend-event-rsvp/
 │   │   ├── admin/          # Admin dashboard endpoints
 │   │   ├── auth/           # JWT authentication
 │   │   ├── calendar/       # Calendar file generation
-│   │   ├── email/          # Email service (Brevo)
+│   │   ├── email/          # Email service (Resend)
 │   │   ├── event/          # Event management
 │   │   ├── invite/         # Invitation system
 │   │   ├── qr/             # QR code generation/validation
@@ -326,8 +328,8 @@ npx prisma studio
 | `JWT_SECRET` | Yes | Secret for JWT tokens | `your-secret-key` |
 | `ADMIN_EMAIL` | Yes | Admin login email | `admin@example.com` |
 | `ADMIN_PASSWORD` | Yes | Admin login password | `secure-password` |
-| `BREVO_API_KEY` | Yes | Brevo email API key | `xkeysib-...` |
-| `FROM_EMAIL` | Yes | Sender email address | `noreply@yourdomain.com` |
+| `RESEND_API_KEY` | Yes | Resend email API key | `re_xxxxxxxxx` |
+| `FROM_EMAIL` | Yes | Sender email address | `Events <noreply@yourdomain.com>` |
 | `FRONTEND_URL` | Yes | Public RSVP frontend URL | `https://rsvp.yourdomain.com` |
 | `ADMIN_URL` | Yes | Admin dashboard URL | `https://admin.yourdomain.com` |
 | `PORT` | No | Server port | `3002` |
@@ -344,8 +346,9 @@ npx prisma studio
 - Check firewall settings
 
 **Emails not sending**
-- Verify `BREVO_API_KEY` is valid
-- Check `FROM_EMAIL` is verified in Brevo dashboard
+- Verify `RESEND_API_KEY` is valid
+- Check `FROM_EMAIL` domain is verified in Resend dashboard
+- Ensure FROM_EMAIL uses your verified domain
 - Review backend logs for errors
 
 **CORS errors**
@@ -380,5 +383,5 @@ For issues, questions, or contributions, please open an issue on GitHub.
 
 - Built with [NestJS](https://nestjs.com/)
 - Database management with [Prisma](https://www.prisma.io/)
-- Email service by [Brevo](https://www.brevo.com/)
+- Email service by [Resend](https://resend.com/)
 - QR code generation with [node-qrcode](https://github.com/soldair/node-qrcode)
