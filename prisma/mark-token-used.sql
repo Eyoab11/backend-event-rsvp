@@ -1,0 +1,1 @@
+UPDATE invites SET "isUsed" = true WHERE token = 'test-token-456';

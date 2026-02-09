@@ -1,0 +1,1 @@
+SELECT "currentRegistrations", capacity FROM events WHERE id = 'test-event-123';

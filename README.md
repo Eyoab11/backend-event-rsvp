@@ -1,98 +1,384 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Event RSVP Backend API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A robust NestJS-based backend API for managing event registrations, invitations, and attendee check-ins with QR code generation, email notifications, and Google Sheets integration.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Features
 
-## Description
+- **Event Management**: Create and manage events with capacity limits and waitlist support
+- **Invitation System**: Generate unique invitation tokens with expiration dates
+- **RSVP Processing**: Handle attendee registrations with plus-one support
+- **Email Notifications**: Automated confirmation and waitlist emails via Brevo
+- **QR Code Generation**: Unique QR codes for each attendee for event check-in
+- **Calendar Integration**: Generate .ics calendar files for attendees
+- **Google Sheets Sync**: Real-time attendee data synchronization (optional)
+- **Admin Dashboard API**: Comprehensive endpoints for event administration
+- **Rate Limiting**: Built-in protection against abuse
+- **JWT Authentication**: Secure admin access
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Tech Stack
 
-## Project setup
+- **Framework**: NestJS 11
+- **Database**: PostgreSQL with Prisma ORM
+- **Email Service**: Brevo (formerly Sendinblue)
+- **Authentication**: JWT
+- **QR Codes**: qrcode library
+- **Calendar**: ics library
+- **Google Sheets**: googleapis (optional)
 
-```bash
-$ npm install
+## Prerequisites
+
+- Node.js 18+ and npm
+- PostgreSQL database
+- Brevo account with API key
+- (Optional) Google Cloud project with Sheets API enabled
+
+## Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd backend-event-rsvp
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Configure environment variables**
+   ```bash
+   cp .env.example .env
+   ```
+   
+   Edit `.env` with your configuration:
+   ```env
+   # Database
+   DATABASE_URL="postgresql://username:password@localhost:5432/event_rsvp?schema=public"
+   
+   # JWT
+   JWT_SECRET="your-super-secret-jwt-key-change-this-in-production"
+   
+   # Admin Credentials
+   ADMIN_EMAIL="admin@example.com"
+   ADMIN_PASSWORD="admin123"
+   
+   # Email Service (Brevo)
+   BREVO_API_KEY="your-brevo-api-key-here"
+   FROM_EMAIL="noreply@yourdomain.com"
+   
+   # Frontend URLs
+   FRONTEND_URL="http://localhost:3000"
+   ADMIN_URL="http://localhost:3001"
+   
+   # Server
+   PORT=3002
+   NODE_ENV="development"
+   ```
+
+4. **Set up the database**
+   ```bash
+   # Run migrations
+   npx prisma migrate deploy
+   
+   # (Optional) Seed with sample data
+   npm run db:seed
+   ```
+
+5. **Start the server**
+   ```bash
+   # Development mode with hot reload
+   npm run start:dev
+   
+   # Production mode
+   npm run build
+   npm run start:prod
+   ```
+
+The API will be available at `http://localhost:3002`
+
+## API Documentation
+
+### Public Endpoints
+
+#### Invite Validation
+```http
+GET /api/invite/validate/:token
+```
+Validates an invitation token and returns event details.
+
+#### RSVP Submission
+```http
+POST /api/rsvp/submit
+Content-Type: application/json
+
+{
+  "inviteToken": "string",
+  "name": "string",
+  "email": "string",
+  "company": "string",
+  "plusOne": {
+    "name": "string",
+    "email": "string",
+    "company": "string"
+  }
+}
 ```
 
-## Compile and run the project
+#### Registration Details
+```http
+GET /api/rsvp/success/:attendeeId
+```
+Retrieves registration confirmation details.
 
-```bash
-# development
-$ npm run start
+#### QR Code Validation
+```http
+GET /api/qr/validate/:qrCode
+```
+Validates a QR code for check-in.
 
-# watch mode
-$ npm run start:dev
+#### Calendar Download
+```http
+GET /api/calendar/attendee/:attendeeId/download
+```
+Downloads .ics calendar file for an attendee.
 
-# production mode
-$ npm run start:prod
+### Admin Endpoints (Requires JWT)
+
+#### Authentication
+```http
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@example.com",
+  "password": "admin123"
+}
 ```
 
-## Run tests
+#### Event Management
+```http
+GET    /api/event              # List all events
+GET    /api/event/:id          # Get event details
+POST   /api/event              # Create event
+PUT    /api/event/:id          # Update event
+DELETE /api/event/:id          # Delete event
+```
+
+#### Invitation Management
+```http
+POST /api/invite/create        # Create single invite
+POST /api/invite/bulk-create   # Create multiple invites
+GET  /api/invite/event/:eventId # List event invites
+POST /api/invite/resend/:id    # Resend invitation email
+```
+
+#### Admin Dashboard
+```http
+GET /api/admin/events/:eventId/attendees  # List attendees
+GET /api/admin/events/:eventId/stats      # Event statistics
+GET /api/admin/events/:eventId/export     # Export attendee data
+POST /api/admin/attendees/:id             # Cancel registration
+GET /api/admin/dashboard-stats            # Overall statistics
+```
+
+For complete API documentation, see the [docs](./docs) directory.
+
+## Project Structure
+
+```
+backend-event-rsvp/
+├── src/
+│   ├── modules/
+│   │   ├── admin/          # Admin dashboard endpoints
+│   │   ├── auth/           # JWT authentication
+│   │   ├── calendar/       # Calendar file generation
+│   │   ├── email/          # Email service (Brevo)
+│   │   ├── event/          # Event management
+│   │   ├── invite/         # Invitation system
+│   │   ├── qr/             # QR code generation/validation
+│   │   ├── rsvp/           # RSVP processing
+│   │   └── sheets/         # Google Sheets integration
+│   ├── prisma/             # Prisma service
+│   ├── app.module.ts       # Root module
+│   └── main.ts             # Application entry point
+├── prisma/
+│   ├── schema.prisma       # Database schema
+│   ├── migrations/         # Database migrations
+│   └── seed.ts             # Database seeding
+├── docs/                   # Additional documentation
+└── test/                   # E2E tests
+```
+
+## Database Schema
+
+The application uses the following main entities:
+
+- **Event**: Event details, capacity, and settings
+- **Invite**: Invitation tokens and metadata
+- **Attendee**: Registered attendees with QR codes
+- **PlusOne**: Plus-one guests with separate QR codes
+
+See [prisma/schema.prisma](./prisma/schema.prisma) for the complete schema.
+
+## Email Templates
+
+The system sends automated emails for:
+
+- **Invitation Emails**: Personalized event invitations with RSVP links
+- **Confirmation Emails**: Registration confirmation with QR code and calendar file
+- **Plus-One Emails**: Separate confirmation for plus-one guests
+- **Waitlist Emails**: Notification when event is at capacity
+
+Email templates are customizable in `src/modules/email/email.service.ts`.
+
+## Google Sheets Integration (Optional)
+
+The system can sync attendee data to Google Sheets in real-time. Two methods are supported:
+
+1. **Webhook Method** (Recommended): Uses Google Apps Script webhook
+2. **Service Account Method**: Direct API integration
+
+See [docs/GOOGLE_SHEETS_INTEGRATION.md](./docs/GOOGLE_SHEETS_INTEGRATION.md) for setup instructions.
+
+## Development
+
+### Running Tests
 
 ```bash
-# unit tests
-$ npm run test
+# Unit tests
+npm run test
 
-# e2e tests
-$ npm run test:e2e
+# E2E tests
+npm run test:e2e
 
-# test coverage
-$ npm run test:cov
+# Test coverage
+npm run test:cov
+```
+
+### Code Quality
+
+```bash
+# Lint code
+npm run lint
+
+# Format code
+npm run format
+```
+
+### Database Management
+
+```bash
+# Create a new migration
+npx prisma migrate dev --name migration_name
+
+# Reset database
+npx prisma migrate reset
+
+# Open Prisma Studio
+npx prisma studio
 ```
 
 ## Deployment
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+### Environment Configuration
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+1. Update `.env` with production values:
+   - Set `NODE_ENV="production"`
+   - Use strong `JWT_SECRET` (min 32 characters)
+   - Change default `ADMIN_PASSWORD`
+   - Update `FRONTEND_URL` and `ADMIN_URL` to production domains
+   - Configure production database URL
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+2. Build the application:
+   ```bash
+   npm run build
+   ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+3. Run database migrations:
+   ```bash
+   npx prisma migrate deploy
+   ```
 
-## Resources
+4. Start the production server:
+   ```bash
+   npm run start:prod
+   ```
 
-Check out a few resources that may come in handy when working with NestJS:
+### Security Considerations
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+- Always use HTTPS in production
+- Rotate JWT secrets regularly
+- Use strong admin passwords
+- Enable rate limiting (configured by default)
+- Keep dependencies updated
+- Never commit `.env` files
 
-## Support
+### Recommended Hosting
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+- **Backend**: Railway, Render, Heroku, AWS, DigitalOcean
+- **Database**: Railway, Supabase, AWS RDS, DigitalOcean Managed Databases
 
-## Stay in touch
+## Environment Variables Reference
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+| Variable | Required | Description | Example |
+|----------|----------|-------------|---------|
+| `DATABASE_URL` | Yes | PostgreSQL connection string | `postgresql://user:pass@host:5432/db` |
+| `JWT_SECRET` | Yes | Secret for JWT tokens | `your-secret-key` |
+| `ADMIN_EMAIL` | Yes | Admin login email | `admin@example.com` |
+| `ADMIN_PASSWORD` | Yes | Admin login password | `secure-password` |
+| `BREVO_API_KEY` | Yes | Brevo email API key | `xkeysib-...` |
+| `FROM_EMAIL` | Yes | Sender email address | `noreply@yourdomain.com` |
+| `FRONTEND_URL` | Yes | Public RSVP frontend URL | `https://rsvp.yourdomain.com` |
+| `ADMIN_URL` | Yes | Admin dashboard URL | `https://admin.yourdomain.com` |
+| `PORT` | No | Server port | `3002` |
+| `NODE_ENV` | No | Environment mode | `development` or `production` |
+| `GOOGLE_SHEETS_WEBHOOK_URL` | No | Google Sheets webhook | `https://script.google.com/...` |
+
+## Troubleshooting
+
+### Common Issues
+
+**Database connection fails**
+- Verify `DATABASE_URL` is correct
+- Ensure PostgreSQL is running
+- Check firewall settings
+
+**Emails not sending**
+- Verify `BREVO_API_KEY` is valid
+- Check `FROM_EMAIL` is verified in Brevo dashboard
+- Review backend logs for errors
+
+**CORS errors**
+- Ensure `FRONTEND_URL` and `ADMIN_URL` match exactly
+- Check for trailing slashes in URLs
+- Verify CORS configuration in `src/main.ts`
+
+**QR codes not generating**
+- Check attendee has a valid `registrationId`
+- Verify QR service is properly initialized
+- Review error logs
+
+## Contributing
+
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## License
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Support
+
+For issues, questions, or contributions, please open an issue on GitHub.
+
+## Acknowledgments
+
+- Built with [NestJS](https://nestjs.com/)
+- Database management with [Prisma](https://www.prisma.io/)
+- Email service by [Brevo](https://www.brevo.com/)
+- QR code generation with [node-qrcode](https://github.com/soldair/node-qrcode)

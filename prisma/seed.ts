@@ -37,7 +37,6 @@ async function main() {
         email: 'john.doe@example.com',
         token: 'test-token-123',
         expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
-        inviteType: 'VIP',
         eventId: event.id,
       },
     }),
@@ -46,7 +45,6 @@ async function main() {
         email: 'jane.smith@partner.com',
         token: 'test-token-456',
         expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-        inviteType: 'PARTNER',
         eventId: event.id,
       },
     }),
@@ -55,7 +53,6 @@ async function main() {
         email: 'guest@general.com',
         token: 'test-token-789',
         expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-        inviteType: 'GENERAL',
         eventId: event.id,
       },
     }),

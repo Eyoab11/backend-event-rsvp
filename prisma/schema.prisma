@@ -7,6 +7,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model Event {
@@ -43,7 +44,6 @@ model Invite {
   token      String      @unique
   isUsed     Boolean     @default(false)
   expiresAt  DateTime
-  inviteType InviteType
   eventId    String
   createdAt  DateTime    @default(now())
   
@@ -75,23 +75,19 @@ model Attendee {
 }
 
 model PlusOne {
-  id         String   @id @default(cuid())
-  name       String
-  company    String
-  title      String
-  email      String
-  attendeeId String   @unique
-  createdAt  DateTime @default(now())
+  id             String   @id @default(cuid())
+  name           String
+  company        String
+  title          String
+  email          String
+  qrCode         String   @unique
+  registrationId String   @unique
+  attendeeId     String   @unique
+  createdAt      DateTime @default(now())
   
-  attendee   Attendee @relation(fields: [attendeeId], references: [id])
+  attendee       Attendee @relation(fields: [attendeeId], references: [id])
   
   @@map("plus_ones")
-}
-
-enum InviteType {
-  VIP
-  PARTNER
-  GENERAL
 }
 
 enum AttendeeStatus {

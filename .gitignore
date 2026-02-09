@@ -55,4 +55,14 @@ pids
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
+# Prisma
 /generated/prisma
+
+# Test and diagnostic scripts (if any)
+test-*.js
+diagnose-*.js
+clear-database.ts
+
+# Google Service Account credentials
+google-credentials.json
+*-service-account.json
