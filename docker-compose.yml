@@ -1,0 +1,38 @@
+version: "3.9"
+
+services:
+  app:
+    build: .
+    container_name: event-rsvp-api
+    restart: always
+    ports:
+      - "4002:3002"
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - migrate
+
+  migrate:
+    build: .
+    container_name: event-rsvp-migrate
+    command: sh -c "npx prisma migrate deploy "
+    env_file:
+      - .env
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15
+    container_name: event-rsvp-db
+    restart: always
+    environment:
+      POSTGRES_USER: username
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: event_rsvp
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+volumes:
+  postgres_data:
