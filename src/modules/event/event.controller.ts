@@ -34,7 +34,14 @@ export class EventController {
 
   @Post()
   async createEvent(@Body() data: CreateEventDto): Promise<Event> {
-    return this.eventService.create(data);
+    // Convert eventDate string to Date object if it's a string
+    const eventData = {
+      ...data,
+      eventDate: typeof data.eventDate === 'string' 
+        ? new Date(data.eventDate) 
+        : data.eventDate,
+    };
+    return this.eventService.create(eventData);
   }
 
   @Put(':id')
@@ -42,7 +49,14 @@ export class EventController {
     @Param('id') id: string,
     @Body() data: UpdateEventDto,
   ): Promise<Event> {
-    return this.eventService.update(id, data);
+    // Convert eventDate string to Date object if it's a string
+    const eventData = {
+      ...data,
+      eventDate: data.eventDate && typeof data.eventDate === 'string'
+        ? new Date(data.eventDate)
+        : data.eventDate,
+    };
+    return this.eventService.update(id, eventData);
   }
 
   @Delete(':id')
