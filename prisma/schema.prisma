@@ -64,6 +64,7 @@ model Attendee {
   registrationId   String         @unique // Format: "REG-12345678"
   inviteId         String         @unique
   eventId          String
+  checkedInAt      DateTime?
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
   
@@ -83,6 +84,7 @@ model PlusOne {
   qrCode         String   @unique
   registrationId String   @unique
   attendeeId     String   @unique
+  checkedInAt    DateTime?
   createdAt      DateTime @default(now())
   
   attendee       Attendee @relation(fields: [attendeeId], references: [id])

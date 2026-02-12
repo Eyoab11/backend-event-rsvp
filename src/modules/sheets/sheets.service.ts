@@ -189,7 +189,7 @@ export class SheetsService implements OnModuleInit {
       attendee.registrationId,
       eventName || '',
       plusOne ? 'Yes' : 'No',
-      'No', // Checked in status - will be updated when check-in feature is used
+      attendee.checkedInAt ? 'Yes' : 'No', // Check-in status based on checkedInAt field
     ];
 
     this.logger.log(`Syncing attendee ${attendee.name} to Google Sheets`);
@@ -312,5 +312,53 @@ export class SheetsService implements OnModuleInit {
     return spreadsheetId
       ? `https://docs.google.com/spreadsheets/d/${spreadsheetId}`
       : null;
+  }
+
+  async updateCheckInStatus(registrationId: string, checkedIn: boolean): Promise<void> {
+    const spreadsheetId = process.env.GOOGLE_SHEET_ID;
+    
+    if (!spreadsheetId) {
+      this.logger.warn('Google Sheets integration not configured');
+      return;
+    }
+
+    try {
+      // Get all rows from the Attendees sheet
+      const response = await this.sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: 'Attendees!A:J',
+      });
+
+      const rows = response.data.values;
+      if (!rows || rows.length <= 1) {
+        this.logger.warn('No attendee data found in sheet');
+        return;
+      }
+
+      // Find the row with matching registration ID (column G, index 6)
+      const rowIndex = rows.findIndex((row, index) => 
+        index > 0 && row[6] === registrationId
+      );
+
+      if (rowIndex === -1) {
+        this.logger.warn(`Attendee with registration ID ${registrationId} not found in sheet`);
+        return;
+      }
+
+      // Update the check-in status (column J, index 9)
+      const actualRowNumber = rowIndex + 1; // +1 because sheets are 1-indexed
+      await this.sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: `Attendees!J${actualRowNumber}`,
+        valueInputOption: 'RAW',
+        requestBody: {
+          values: [[checkedIn ? 'Yes' : 'No']],
+        },
+      });
+
+      this.logger.log(`Updated check-in status for ${registrationId} to ${checkedIn ? 'Yes' : 'No'}`);
+    } catch (error) {
+      this.logger.error(`Failed to update check-in status in Google Sheets: ${error.message}`, error.stack);
+    }
   }
 }

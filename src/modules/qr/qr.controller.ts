@@ -1,4 +1,4 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, Post } from '@nestjs/common';
 import { QrService } from './qr.service';
 import { Attendee } from '@prisma/client';
 
@@ -21,6 +21,27 @@ export class QrController {
     } catch (error) {
       return {
         valid: false,
+        message: error.message,
+      };
+    }
+  }
+
+  @Post('check-in/:qrCode')
+  async checkInAttendee(@Param('qrCode') qrCode: string): Promise<{
+    success: boolean;
+    attendee?: any;
+    message?: string;
+  }> {
+    try {
+      const result = await this.qrService.checkInAttendee(qrCode);
+      return {
+        success: true,
+        attendee: result,
+        message: 'Check-in successful',
+      };
+    } catch (error) {
+      return {
+        success: false,
         message: error.message,
       };
     }
