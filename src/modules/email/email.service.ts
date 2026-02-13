@@ -28,21 +28,50 @@ export interface WaitlistEmailData {
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
   private resend: Resend | undefined;
-  private fromEmail: string;
-  private frontendUrl: string;
+  private readonly fromEmail: string;
+  private readonly frontendUrl: string;
 
   constructor() {
     const apiKey = process.env.RESEND_API_KEY;
-    this.fromEmail = process.env.FROM_EMAIL || 'onboarding@resend.dev';
-    this.frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const fromEmail = process.env.FROM_EMAIL;
+    const frontendUrl = process.env.FRONTEND_URL;
 
     if (!apiKey) {
       this.logger.warn('RESEND_API_KEY not set. Email functionality will be disabled.');
+      // Set dummy values to satisfy TypeScript, but service won't be functional
+      this.fromEmail = '';
+      this.frontendUrl = '';
       return;
     }
 
+    if (!fromEmail) {
+      this.logger.error('FROM_EMAIL environment variable is required but not set.');
+      throw new Error('FROM_EMAIL environment variable is required');
+    }
+
+    if (!frontendUrl) {
+      this.logger.error('FRONTEND_URL environment variable is required but not set.');
+      throw new Error('FRONTEND_URL environment variable is required');
+    }
+
+    this.fromEmail = fromEmail;
+    this.frontendUrl = frontendUrl;
     this.resend = new Resend(apiKey);
     this.logger.log('Email service initialized with Resend API');
+  }
+
+  /**
+   * Convert 24-hour time format to 12-hour format with AM/PM
+   * Example: "19:00" -> "7:00 PM", "07:00" -> "7:00 AM"
+   */
+  private formatTimeTo12Hour(time: string): string {
+    if (!time) return time;
+    
+    const [hours, minutes] = time.split(':').map(Number);
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours % 12 || 12; // Convert 0 to 12 for midnight
+    
+    return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
   }
 
   /**
@@ -242,6 +271,8 @@ export class EmailService {
       month: 'long',
       day: 'numeric',
     });
+    const startTime = this.formatTimeTo12Hour(event.eventStartTime);
+    const endTime = this.formatTimeTo12Hour(event.eventEndTime);
 
     return `
 <!DOCTYPE html>
@@ -250,45 +281,81 @@ export class EmailService {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Event Confirmation</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-    <h1 style="color: white; margin: 0; font-size: 28px;">You're Confirmed!</h1>
+<body style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; line-height: 1.5; color: #ffffff; max-width: 600px; margin: 0 auto; padding: 0; background-color: #000000;">
+  
+  <!-- Hero Banner -->
+  <div style="position: relative; height: 200px; overflow: hidden; background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);">
+    <img src="https://t4.ftcdn.net/jpg/05/64/91/35/240_F_564913571_s7Dbf5hVB1T1GTeG2GFDEqNOgmvPz87k.jpg" alt="Event Banner" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.4;" />
+    <div style="position: absolute; inset: 0; background: linear-gradient(135deg, rgba(0,0,0,0.8) 0%, rgba(217,119,6,0.3) 100%);"></div>
+    
+    <div style="position: relative; z-index: 1; text-align: center; padding: 60px 20px 20px;">
+      <h1 style="font-family: 'Playfair Display', Georgia, serif; color: #ffffff; margin: 0 0 8px 0; font-size: 42px; font-weight: 900; letter-spacing: 1px; text-shadow: 2px 2px 8px rgba(0,0,0,0.5);">You're Confirmed!</h1>
+      <p style="color: #fbbf24; font-size: 16px; margin: 0; font-weight: 500; text-shadow: 1px 1px 3px rgba(0,0,0,0.5);">🥂 We can't wait to celebrate with you 🍷</p>
+    </div>
   </div>
   
-  <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
-    <p style="font-size: 18px; margin-bottom: 20px;">Hi ${attendee.name},</p>
+  <!-- Main Content -->
+  <div style="background: linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 100%); padding: 25px 20px;">
+    <p style="font-size: 18px; margin: 0 0 15px 0; color: #ffffff; font-weight: 500;">Hi ${attendee.name},</p>
     
-    <p>We're excited to confirm your registration for <strong>${event.eventName}</strong>!</p>
+    <p style="color: #e5e5e5; margin: 0 0 20px 0; font-size: 15px;">We're excited to confirm your registration for <strong style="color: #f59e0b;">${event.eventName}</strong>!</p>
     
-    <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #667eea;">
-      <h2 style="margin-top: 0; color: #667eea;">Event Details</h2>
-      <p><strong>Date:</strong> ${eventDate}</p>
-      <p><strong>Time:</strong> ${event.eventStartTime} - ${event.eventEndTime}</p>
-      <p><strong>Venue:</strong> ${event.venueName}</p>
-      <p><strong>Address:</strong> ${event.venueAddress}, ${event.venueCity}, ${event.venueState} ${event.venueZipCode}</p>
-      <p><strong>Dress Code:</strong> ${event.dressCode}</p>
+    <!-- Event Details Card -->
+    <div style="background: linear-gradient(135deg, rgba(245,158,11,0.15) 0%, rgba(217,119,6,0.1) 100%); padding: 20px; border-radius: 12px; margin: 0 0 20px 0; border: 1px solid rgba(245,158,11,0.3);">
+      <h2 style="font-family: 'Playfair Display', Georgia, serif; margin: 0 0 15px 0; color: #f59e0b; font-size: 26px; font-weight: 700; text-align: center; letter-spacing: 0.5px;">🎊 Event Details</h2>
+      
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+          <td style="padding: 8px 0; color: #fbbf24; font-weight: 600; font-size: 14px; width: 35%;">📅 Date:</td>
+          <td style="padding: 8px 0; color: #e5e5e5; font-size: 14px;">${eventDate}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; color: #fbbf24; font-weight: 600; font-size: 14px;">⏰ Time:</td>
+          <td style="padding: 8px 0; color: #e5e5e5; font-size: 14px;">${startTime} - ${endTime}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; color: #fbbf24; font-weight: 600; font-size: 14px;">📍 Venue:</td>
+          <td style="padding: 8px 0; color: #e5e5e5; font-size: 14px;">${event.venueName}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; color: #fbbf24; font-weight: 600; font-size: 14px;">🗺️ Address:</td>
+          <td style="padding: 8px 0; color: #e5e5e5; font-size: 14px;">${event.venueAddress}, ${event.venueCity}, ${event.venueState} ${event.venueZipCode}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; color: #fbbf24; font-weight: 600; font-size: 14px;">👔 Dress Code:</td>
+          <td style="padding: 8px 0; color: #e5e5e5; font-size: 14px;">${event.dressCode}</td>
+        </tr>
+      </table>
     </div>
     
-    <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
-      <h3 style="margin-top: 0; color: #667eea;">Your Registration</h3>
-      <p><strong>Registration ID:</strong> ${attendee.registrationId}</p>
-      <p><strong>Name:</strong> ${attendee.name}</p>
-      <p><strong>Company:</strong> ${attendee.company}</p>
-      ${plusOne ? `<p><strong>Plus One:</strong> ${plusOne.name} (${plusOne.company}) - They will receive a separate email with their own QR code</p>` : ''}
+    <!-- Registration Card -->
+    <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 12px; margin: 0 0 20px 0; border: 1px solid rgba(255,255,255,0.1);">
+      <h3 style="font-family: 'Playfair Display', Georgia, serif; margin: 0 0 12px 0; color: #f59e0b; font-size: 22px; font-weight: 700;">Your Registration</h3>
+      <p style="margin: 8px 0; color: #e5e5e5; font-size: 14px;"><strong style="color: #fbbf24;">ID:</strong> ${attendee.registrationId}</p>
+      <p style="margin: 8px 0; color: #e5e5e5; font-size: 14px;"><strong style="color: #fbbf24;">Name:</strong> ${attendee.name}</p>
+      <p style="margin: 8px 0; color: #e5e5e5; font-size: 14px;"><strong style="color: #fbbf24;">Company:</strong> ${attendee.company}</p>
+      ${plusOne ? `<p style="margin: 8px 0; color: #e5e5e5; font-size: 14px;"><strong style="color: #fbbf24;">Plus One:</strong> ${plusOne.name} (${plusOne.company})</p>` : ''}
     </div>
     
-    <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ffc107;">
-      <p style="margin: 0;"><strong>Important:</strong> Your personal QR code is attached to this email. Please save it or take a screenshot for check-in at the event. ${plusOne ? 'Your plus-one will receive their own QR code via email.' : ''}</p>
+    <!-- Important Notice -->
+    <div style="background: linear-gradient(135deg, rgba(245,158,11,0.2) 0%, rgba(217,119,6,0.15) 100%); padding: 15px; border-radius: 8px; margin: 0 0 20px 0; border-left: 4px solid #f59e0b;">
+      <p style="margin: 0; color: #ffffff; font-size: 14px; line-height: 1.6;"><strong style="color: #fbbf24;">📱 Important:</strong> Your QR code is attached. Save it for check-in at the event.${plusOne ? ' Your plus-one will receive their own QR code.' : ''}</p>
     </div>
     
-    <p style="color: #666; font-size: 14px; margin-top: 30px;">
-      If you have any questions, please contact us at events@levyeromedia.com
+    <!-- Divider -->
+    <div style="margin: 20px 0; text-align: center;">
+      <span style="font-size: 24px;">🥂 ✨ 🍷</span>
+    </div>
+    
+    <p style="color: #999999; font-size: 13px; margin: 15px 0 0 0; line-height: 1.5;">
+      Questions? Contact us at <a href="mailto:contact@levyeromedia.com" style="color: #f59e0b; text-decoration: none;">contact@levyeromedia.com</a>
     </p>
     
-    <p style="color: #666; font-size: 14px;">
+    <p style="color: #999999; font-size: 13px; margin: 10px 0 0 0;">
       See you at the event!<br>
-      <strong>LEM Ventures Team</strong>
+      <strong style="color: #f59e0b;">LEM Team</strong>
     </p>
   </div>
 </body>
@@ -307,6 +374,8 @@ export class EmailService {
       month: 'long',
       day: 'numeric',
     });
+    const startTime = this.formatTimeTo12Hour(event.eventStartTime);
+    const endTime = this.formatTimeTo12Hour(event.eventEndTime);
 
     return `
 You're Confirmed!
@@ -317,7 +386,7 @@ We're excited to confirm your registration for ${event.eventName}!
 
 EVENT DETAILS
 Date: ${eventDate}
-Time: ${event.eventStartTime} - ${event.eventEndTime}
+Time: ${startTime} - ${endTime}
 Venue: ${event.venueName}
 Address: ${event.venueAddress}, ${event.venueCity}, ${event.venueState} ${event.venueZipCode}
 Dress Code: ${event.dressCode}
@@ -331,10 +400,10 @@ ${plusOne ? `Plus One: ${plusOne.name} (${plusOne.company})` : ''}
 IMPORTANT: Your personal QR code is attached to this email. Please save it or take a screenshot for check-in at the event.
 ${plusOne ? 'Your plus-one will receive their own QR code via email.' : ''}
 
-If you have any questions, please contact us at events@levyeromedia.com
+If you have any questions, please contact us at contact@levyeromedia.com
 
 See you at the event!
-LEM Ventures Team
+LEM Team
     `.trim();
   }
 
@@ -349,6 +418,8 @@ LEM Ventures Team
       month: 'long',
       day: 'numeric',
     });
+    const startTime = this.formatTimeTo12Hour(event.eventStartTime);
+    const endTime = this.formatTimeTo12Hour(event.eventEndTime);
 
     return `
 <!DOCTYPE html>
@@ -357,47 +428,80 @@ LEM Ventures Team
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Waitlist Confirmation</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-    <h1 style="color: white; margin: 0; font-size: 28px;">You're on the Waitlist</h1>
+<body style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; line-height: 1.5; color: #ffffff; max-width: 600px; margin: 0 auto; padding: 0; background-color: #000000;">
+  
+  <!-- Hero Banner -->
+  <div style="position: relative; height: 200px; overflow: hidden; background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);">
+    <img src="https://t4.ftcdn.net/jpg/05/64/91/35/240_F_564913571_s7Dbf5hVB1T1GTeG2GFDEqNOgmvPz87k.jpg" alt="Event Banner" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.4;" />
+    <div style="position: absolute; inset: 0; background: linear-gradient(135deg, rgba(0,0,0,0.8) 0%, rgba(217,119,6,0.3) 100%);"></div>
+    
+    <div style="position: relative; z-index: 1; text-align: center; padding: 60px 20px 20px;">
+      <h1 style="font-family: 'Playfair Display', Georgia, serif; color: #ffffff; margin: 0 0 8px 0; font-size: 42px; font-weight: 900; letter-spacing: 1px; text-shadow: 2px 2px 8px rgba(0,0,0,0.5);">You're on the Waitlist</h1>
+      <p style="color: #fbbf24; font-size: 16px; margin: 0; font-weight: 500; text-shadow: 1px 1px 3px rgba(0,0,0,0.5);">⏳ We'll notify you if a spot opens up</p>
+    </div>
   </div>
   
-  <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
-    <p style="font-size: 18px; margin-bottom: 20px;">Hi ${attendee.name},</p>
+  <!-- Main Content -->
+  <div style="background: linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 100%); padding: 25px 20px;">
+    <p style="font-size: 18px; margin: 0 0 15px 0; color: #ffffff; font-weight: 500;">Hi ${attendee.name},</p>
     
-    <p>Thank you for your interest in <strong>${event.eventName}</strong>!</p>
+    <p style="color: #e5e5e5; margin: 0 0 15px 0; font-size: 15px;">Thank you for your interest in <strong style="color: #f59e0b;">${event.eventName}</strong>!</p>
     
-    <p>The event is currently at capacity, but we've added you to our waitlist. We'll notify you immediately if a spot becomes available.</p>
+    <p style="color: #e5e5e5; margin: 0 0 20px 0; font-size: 15px;">The event is currently at capacity, but we've added you to our waitlist. We'll notify you immediately if a spot becomes available.</p>
     
-    <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f5576c;">
-      <h2 style="margin-top: 0; color: #f5576c;">Event Details</h2>
-      <p><strong>Date:</strong> ${eventDate}</p>
-      <p><strong>Time:</strong> ${event.eventStartTime} - ${event.eventEndTime}</p>
-      <p><strong>Venue:</strong> ${event.venueName}</p>
-      <p><strong>Address:</strong> ${event.venueAddress}, ${event.venueCity}, ${event.venueState} ${event.venueZipCode}</p>
+    <!-- Event Details Card -->
+    <div style="background: linear-gradient(135deg, rgba(245,158,11,0.15) 0%, rgba(217,119,6,0.1) 100%); padding: 20px; border-radius: 12px; margin: 0 0 20px 0; border: 1px solid rgba(245,158,11,0.3);">
+      <h2 style="font-family: 'Playfair Display', Georgia, serif; margin: 0 0 15px 0; color: #f59e0b; font-size: 26px; font-weight: 700; text-align: center; letter-spacing: 0.5px;">🎊 Event Details</h2>
+      
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+          <td style="padding: 8px 0; color: #fbbf24; font-weight: 600; font-size: 14px; width: 35%;">📅 Date:</td>
+          <td style="padding: 8px 0; color: #e5e5e5; font-size: 14px;">${eventDate}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; color: #fbbf24; font-weight: 600; font-size: 14px;">⏰ Time:</td>
+          <td style="padding: 8px 0; color: #e5e5e5; font-size: 14px;">${startTime} - ${endTime}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; color: #fbbf24; font-weight: 600; font-size: 14px;">📍 Venue:</td>
+          <td style="padding: 8px 0; color: #e5e5e5; font-size: 14px;">${event.venueName}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; color: #fbbf24; font-weight: 600; font-size: 14px;">🗺️ Address:</td>
+          <td style="padding: 8px 0; color: #e5e5e5; font-size: 14px;">${event.venueAddress}, ${event.venueCity}, ${event.venueState} ${event.venueZipCode}</td>
+        </tr>
+      </table>
     </div>
     
-    <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
-      <h3 style="margin-top: 0; color: #f5576c;">Your Registration</h3>
-      <p><strong>Registration ID:</strong> ${attendee.registrationId}</p>
-      <p><strong>Name:</strong> ${attendee.name}</p>
-      <p><strong>Company:</strong> ${attendee.company}</p>
-      ${plusOne ? `<p><strong>Plus One:</strong> ${plusOne.name} (${plusOne.company})</p>` : ''}
-      <p><strong>Status:</strong> Waitlisted</p>
+    <!-- Registration Card -->
+    <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 12px; margin: 0 0 20px 0; border: 1px solid rgba(255,255,255,0.1);">
+      <h3 style="font-family: 'Playfair Display', Georgia, serif; margin: 0 0 12px 0; color: #f59e0b; font-size: 22px; font-weight: 700;">Your Registration</h3>
+      <p style="margin: 8px 0; color: #e5e5e5; font-size: 14px;"><strong style="color: #fbbf24;">ID:</strong> ${attendee.registrationId}</p>
+      <p style="margin: 8px 0; color: #e5e5e5; font-size: 14px;"><strong style="color: #fbbf24;">Name:</strong> ${attendee.name}</p>
+      <p style="margin: 8px 0; color: #e5e5e5; font-size: 14px;"><strong style="color: #fbbf24;">Company:</strong> ${attendee.company}</p>
+      ${plusOne ? `<p style="margin: 8px 0; color: #e5e5e5; font-size: 14px;"><strong style="color: #fbbf24;">Plus One:</strong> ${plusOne.name} (${plusOne.company})</p>` : ''}
+      <p style="margin: 8px 0; color: #fbbf24; font-size: 14px; font-weight: 600;">Status: Waitlisted</p>
     </div>
     
-    <div style="background: #d1ecf1; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #0c5460;">
-      <p style="margin: 0;">We'll send you an email if a spot opens up. Keep an eye on your inbox!</p>
+    <!-- Important Notice -->
+    <div style="background: linear-gradient(135deg, rgba(245,158,11,0.2) 0%, rgba(217,119,6,0.15) 100%); padding: 15px; border-radius: 8px; margin: 0 0 20px 0; border-left: 4px solid #f59e0b;">
+      <p style="margin: 0; color: #ffffff; font-size: 14px; line-height: 1.6;"><strong style="color: #fbbf24;">📧 We'll notify you:</strong> Keep an eye on your inbox! We'll email you immediately if a spot becomes available.</p>
     </div>
     
-    <p style="color: #666; font-size: 14px; margin-top: 30px;">
-      If you have any questions, please contact us at events@levyeromedia.com
+    <!-- Divider -->
+    <div style="margin: 20px 0; text-align: center;">
+      <span style="font-size: 24px;">🥂 ✨ 🍷</span>
+    </div>
+    
+    <p style="color: #999999; font-size: 13px; margin: 15px 0 0 0; line-height: 1.5;">
+      Questions? Contact us at <a href="mailto:contact@levyeromedia.com" style="color: #f59e0b; text-decoration: none;">contact@levyeromedia.com</a>
     </p>
     
-    <p style="color: #666; font-size: 14px;">
+    <p style="color: #999999; font-size: 13px; margin: 10px 0 0 0;">
       Thank you for your understanding!<br>
-      <strong>LEM Ventures Team</strong>
+      <strong style="color: #f59e0b;">LEM Team</strong>
     </p>
   </div>
 </body>
@@ -416,6 +520,8 @@ LEM Ventures Team
       month: 'long',
       day: 'numeric',
     });
+    const startTime = this.formatTimeTo12Hour(event.eventStartTime);
+    const endTime = this.formatTimeTo12Hour(event.eventEndTime);
 
     return `
 You're on the Waitlist
@@ -428,7 +534,7 @@ The event is currently at capacity, but we've added you to our waitlist. We'll n
 
 EVENT DETAILS
 Date: ${eventDate}
-Time: ${event.eventStartTime} - ${event.eventEndTime}
+Time: ${startTime} - ${endTime}
 Venue: ${event.venueName}
 Address: ${event.venueAddress}, ${event.venueCity}, ${event.venueState} ${event.venueZipCode}
 
@@ -441,10 +547,10 @@ Status: Waitlisted
 
 We'll send you an email if a spot opens up. Keep an eye on your inbox!
 
-If you have any questions, please contact us at events@levyeromedia.com
+If you have any questions, please contact us at contact@levyeromedia.com
 
 Thank you for your understanding!
-LEM Ventures Team
+LEM Team
     `.trim();
   }
 
@@ -459,6 +565,8 @@ LEM Ventures Team
       month: 'long',
       day: 'numeric',
     });
+    const startTime = this.formatTimeTo12Hour(event.eventStartTime);
+    const endTime = this.formatTimeTo12Hour(event.eventEndTime);
 
     return `
 <!DOCTYPE html>
@@ -466,46 +574,60 @@ LEM Ventures Team
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
   <title>Event Confirmation</title>
 </head>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-    <h1 style="color: white; margin: 0; font-size: 28px;">You're Confirmed!</h1>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; line-height: 1.5; color: #ffffff; max-width: 600px; margin: 0 auto; padding: 0; background-color: #000000;">
+  
+  <!-- Banner Image -->
+  <div style="width: 100%; overflow: hidden;">
+    <img src="https://t4.ftcdn.net/jpg/05/64/91/35/240_F_564913571_s7Dbf5hVB1T1GTeG2GFDEqNOgmvPz87k.jpg" alt="Event Banner" style="width: 100%; height: auto; display: block; max-height: 200px; object-fit: cover;">
   </div>
   
-  <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
-    <p style="font-size: 18px; margin-bottom: 20px;">Hi ${plusOne.name},</p>
+  <div style="background: #000000; padding: 20px;">
+    <h1 style="font-family: 'Playfair Display', serif; color: #f59e0b; margin: 0 0 15px 0; font-size: 42px; font-weight: 700; text-align: center;">You're Confirmed! 🥂</h1>
     
-    <p>We're excited to confirm your registration for <strong>${event.eventName}</strong> as a guest of ${primaryAttendeeName}!</p>
+    <p style="font-size: 18px; margin: 15px 0; color: #ffffff;">Hi ${plusOne.name},</p>
     
-    <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #667eea;">
-      <h2 style="margin-top: 0; color: #667eea;">Event Details</h2>
-      <p><strong>Date:</strong> ${eventDate}</p>
-      <p><strong>Time:</strong> ${event.eventStartTime} - ${event.eventEndTime}</p>
-      <p><strong>Venue:</strong> ${event.venueName}</p>
-      <p><strong>Address:</strong> ${event.venueAddress}, ${event.venueCity}, ${event.venueState} ${event.venueZipCode}</p>
-      <p><strong>Dress Code:</strong> ${event.dressCode}</p>
+    <p style="color: #e5e5e5; margin: 10px 0; font-size: 15px;">We're excited to confirm your registration for <strong style="color: #f59e0b;">${event.eventName}</strong> as a guest of ${primaryAttendeeName}! 🎉</p>
+    
+    <!-- Event Details Card -->
+    <div style="background: rgba(245, 158, 11, 0.08); padding: 18px; border-radius: 8px; margin: 15px 0; border: 1px solid rgba(245, 158, 11, 0.2);">
+      <h2 style="font-family: 'Playfair Display', serif; margin: 0 0 12px 0; color: #f59e0b; font-size: 26px; font-weight: 600;">Event Details</h2>
+      <p style="margin: 8px 0; color: #e5e5e5; font-size: 15px;"><strong style="color: #fbbf24;">Date:</strong> ${eventDate}</p>
+      <p style="margin: 8px 0; color: #e5e5e5; font-size: 15px;"><strong style="color: #fbbf24;">Time:</strong> ${startTime} - ${endTime}</p>
+      <p style="margin: 8px 0; color: #e5e5e5; font-size: 15px;"><strong style="color: #fbbf24;">Venue:</strong> ${event.venueName}</p>
+      <p style="margin: 8px 0; color: #e5e5e5; font-size: 15px;"><strong style="color: #fbbf24;">Address:</strong> ${event.venueAddress}, ${event.venueCity}, ${event.venueState} ${event.venueZipCode}</p>
+      <p style="margin: 8px 0; color: #e5e5e5; font-size: 15px;"><strong style="color: #fbbf24;">Dress Code:</strong> ${event.dressCode}</p>
     </div>
     
-    <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
-      <h3 style="margin-top: 0; color: #667eea;">Your Registration</h3>
-      <p><strong>Registration ID:</strong> ${plusOne.registrationId}</p>
-      <p><strong>Name:</strong> ${plusOne.name}</p>
-      <p><strong>Company:</strong> ${plusOne.company}</p>
-      <p><strong>Attending with:</strong> ${primaryAttendeeName}</p>
+    <!-- Registration Card -->
+    <div style="background: rgba(255, 255, 255, 0.05); padding: 18px; border-radius: 8px; margin: 15px 0; border: 1px solid rgba(255, 255, 255, 0.1);">
+      <h3 style="font-family: 'Playfair Display', serif; margin: 0 0 12px 0; color: #f59e0b; font-size: 22px; font-weight: 600;">Your Registration</h3>
+      <p style="margin: 8px 0; color: #e5e5e5; font-size: 15px;"><strong style="color: #fbbf24;">Registration ID:</strong> ${plusOne.registrationId}</p>
+      <p style="margin: 8px 0; color: #e5e5e5; font-size: 15px;"><strong style="color: #fbbf24;">Name:</strong> ${plusOne.name}</p>
+      <p style="margin: 8px 0; color: #e5e5e5; font-size: 15px;"><strong style="color: #fbbf24;">Company:</strong> ${plusOne.company}</p>
+      <p style="margin: 8px 0; color: #e5e5e5; font-size: 15px;"><strong style="color: #fbbf24;">Attending with:</strong> ${primaryAttendeeName}</p>
     </div>
     
-    <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ffc107;">
-      <p style="margin: 0;"><strong>Important:</strong> Your personal QR code is attached to this email. Please save it or take a screenshot for check-in at the event. Each guest has their own unique QR code for independent check-in.</p>
+    <!-- Important Notice -->
+    <div style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(217, 119, 6, 0.15) 100%); padding: 15px; border-radius: 8px; margin: 15px 0; border-left: 4px solid #f59e0b;">
+      <p style="margin: 0; color: #ffffff; font-size: 14px;"><strong style="color: #fbbf24;">Important:</strong> Your personal QR code is attached to this email. Please save it or take a screenshot for check-in at the event. Each guest has their own unique QR code for independent check-in. ✨</p>
     </div>
     
-    <p style="color: #666; font-size: 14px; margin-top: 30px;">
-      If you have any questions, please contact us at events@levyeromedia.com
+    <div style="text-align: center; margin: 20px 0;">
+      <div style="display: inline-block; width: 60px; height: 2px; background: linear-gradient(90deg, transparent, #f59e0b, transparent);"></div>
+      <span style="margin: 0 10px; color: #f59e0b; font-size: 20px;">🍷</span>
+      <div style="display: inline-block; width: 60px; height: 2px; background: linear-gradient(90deg, transparent, #f59e0b, transparent);"></div>
+    </div>
+    
+    <p style="color: #999999; font-size: 14px; margin: 15px 0;">
+      If you have any questions, please contact us at contact@levyeromedia.com
     </p>
     
-    <p style="color: #666; font-size: 14px;">
-      See you at the event!<br>
-      <strong>LEM Ventures Team</strong>
+    <p style="color: #999999; font-size: 14px; margin: 10px 0;">
+      See you at the event! 🎊<br>
+      <strong style="color: #f59e0b;">LEM Team</strong>
     </p>
   </div>
 </body>
@@ -524,6 +646,8 @@ LEM Ventures Team
       month: 'long',
       day: 'numeric',
     });
+    const startTime = this.formatTimeTo12Hour(event.eventStartTime);
+    const endTime = this.formatTimeTo12Hour(event.eventEndTime);
 
     return `
 You're Confirmed!
@@ -534,7 +658,7 @@ We're excited to confirm your registration for ${event.eventName} as a guest of 
 
 EVENT DETAILS
 Date: ${eventDate}
-Time: ${event.eventStartTime} - ${event.eventEndTime}
+Time: ${startTime} - ${endTime}
 Venue: ${event.venueName}
 Address: ${event.venueAddress}, ${event.venueCity}, ${event.venueState} ${event.venueZipCode}
 Dress Code: ${event.dressCode}
@@ -548,10 +672,10 @@ Attending with: ${primaryAttendeeName}
 IMPORTANT: Your personal QR code is attached to this email. Please save it or take a screenshot for check-in at the event. Each guest has their own unique QR code.
 Your Registration ID: ${plusOne.registrationId}
 
-If you have any questions, please contact us at events@levyeromedia.com
+If you have any questions, please contact us at contact@levyeromedia.com
 
 See you at the event!
-LEM Ventures Team
+LEM Team
     `.trim();
   }
 }
