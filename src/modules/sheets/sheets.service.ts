@@ -315,50 +315,103 @@ export class SheetsService implements OnModuleInit {
   }
 
   async updateCheckInStatus(registrationId: string, checkedIn: boolean): Promise<void> {
-    const spreadsheetId = process.env.GOOGLE_SHEET_ID;
-    
-    if (!spreadsheetId) {
-      this.logger.warn('Google Sheets integration not configured');
+    if (!this.isConfigured) {
+      this.logger.warn('Google Sheets not configured, skipping check-in sync');
       return;
     }
 
     try {
-      // Get all rows from the Attendees sheet
-      const response = await this.sheets.spreadsheets.values.get({
-        spreadsheetId,
-        range: 'Attendees!A:J',
-      });
-
-      const rows = response.data.values;
-      if (!rows || rows.length <= 1) {
-        this.logger.warn('No attendee data found in sheet');
+      // Check if using webhook method (Apps Script)
+      const webhookUrl = process.env.GOOGLE_SHEETS_WEBHOOK_URL;
+      
+      if (webhookUrl) {
+        await this.updateCheckInViaWebhook(webhookUrl, registrationId, checkedIn);
         return;
       }
 
-      // Find the row with matching registration ID (column G, index 6)
-      const rowIndex = rows.findIndex((row, index) => 
-        index > 0 && row[6] === registrationId
-      );
-
-      if (rowIndex === -1) {
-        this.logger.warn(`Attendee with registration ID ${registrationId} not found in sheet`);
-        return;
-      }
-
-      // Update the check-in status (column J, index 9)
-      const actualRowNumber = rowIndex + 1; // +1 because sheets are 1-indexed
-      await this.sheets.spreadsheets.values.update({
-        spreadsheetId,
-        range: `Attendees!J${actualRowNumber}`,
-        valueInputOption: 'RAW',
-        requestBody: {
-          values: [[checkedIn ? 'Yes' : 'No']],
-        },
-      });
-
-      this.logger.log(`Updated check-in status for ${registrationId} to ${checkedIn ? 'Yes' : 'No'}`);
+      // Fallback to direct API method
+      await this.updateCheckInViaAPI(registrationId, checkedIn);
     } catch (error) {
       this.logger.error(`Failed to update check-in status in Google Sheets: ${error.message}`, error.stack);
+      // Don't throw - we don't want to fail check-in if sheets sync fails
     }
+  }
+
+  private async updateCheckInViaWebhook(
+    webhookUrl: string,
+    registrationId: string,
+    checkedIn: boolean,
+  ): Promise<void> {
+    this.logger.log(`Updating check-in status for ${registrationId} via webhook`);
+
+    const payload = {
+      action: 'updateCheckIn',
+      registrationId,
+      checkedIn,
+    };
+
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Webhook returned ${response.status}: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    
+    if (result.success) {
+      this.logger.log(`✅ Successfully updated check-in status for ${registrationId} via webhook`);
+    } else {
+      throw new Error(result.error || 'Unknown webhook error');
+    }
+  }
+
+  private async updateCheckInViaAPI(registrationId: string, checkedIn: boolean): Promise<void> {
+    const spreadsheetId = process.env.GOOGLE_SHEET_ID;
+    
+    if (!spreadsheetId || !this.sheets) {
+      this.logger.warn('Google Sheets API not configured');
+      return;
+    }
+
+    // Get all rows from the Attendees sheet
+    const response = await this.sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: 'Attendees!A:J',
+    });
+
+    const rows = response.data.values;
+    if (!rows || rows.length <= 1) {
+      this.logger.warn('No attendee data found in sheet');
+      return;
+    }
+
+    // Find the row with matching registration ID (column G, index 6)
+    const rowIndex = rows.findIndex((row, index) => 
+      index > 0 && row[6] === registrationId
+    );
+
+    if (rowIndex === -1) {
+      this.logger.warn(`Attendee with registration ID ${registrationId} not found in sheet`);
+      return;
+    }
+
+    // Update the check-in status (column J, index 9)
+    const actualRowNumber = rowIndex + 1; // +1 because sheets are 1-indexed
+    await this.sheets.spreadsheets.values.update({
+      spreadsheetId,
+      range: `Attendees!J${actualRowNumber}`,
+      valueInputOption: 'RAW',
+      requestBody: {
+        values: [[checkedIn ? 'Yes' : 'No']],
+      },
+    });
+
+    this.logger.log(`✅ Updated check-in status for ${registrationId} to ${checkedIn ? 'Yes' : 'No'}`);
   }
 }
