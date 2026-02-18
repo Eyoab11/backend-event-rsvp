@@ -210,127 +210,27 @@ export class InviteService {
     const startTime = formatTimeTo12Hour(event.eventStartTime);
     const endTime = formatTimeTo12Hour(event.eventEndTime);
 
-    // Generate HTML email
-    const htmlContent = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>You're Invited!</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-</head>
-<body style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; line-height: 1.5; color: #ffffff; max-width: 600px; margin: 0 auto; padding: 0; background-color: #000000;">
-  
-  <!-- Hero Banner -->
-  <div style="position: relative; height: 200px; overflow: hidden; background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);">
-    <img src="https://t4.ftcdn.net/jpg/05/64/91/35/240_F_564913571_s7Dbf5hVB1T1GTeG2GFDEqNOgmvPz87k.jpg" alt="Event Banner" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.4;" />
-    <div style="position: absolute; inset: 0; background: linear-gradient(135deg, rgba(0,0,0,0.8) 0%, rgba(217,119,6,0.3) 100%);"></div>
-    
-    <div style="position: relative; z-index: 1; text-align: center; padding: 60px 20px 20px;">
-      <h1 style="font-family: 'Playfair Display', Georgia, serif; color: #ffffff; margin: 0 0 8px 0; font-size: 42px; font-weight: 900; letter-spacing: 1px; text-shadow: 2px 2px 8px rgba(0,0,0,0.5);">You're Invited!</h1>
-      <p style="color: #fbbf24; font-size: 16px; margin: 0; font-weight: 500; text-shadow: 1px 1px 3px rgba(0,0,0,0.5);">🥂 Join us for an exclusive event 🍷</p>
-    </div>
-  </div>
-  
-  <!-- Main Content -->
-  <div style="background: linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 100%); padding: 25px 20px;">
-    <p style="font-size: 18px; margin: 0 0 15px 0; color: #ffffff; font-weight: 500;">Hello,</p>
-    
-    <p style="color: #e5e5e5; margin: 0 0 20px 0; font-size: 15px;">You're invited to an exclusive event: <strong style="color: #f59e0b;">${event.eventName}</strong></p>
-    
-    <!-- Event Details Card -->
-    <div style="background: linear-gradient(135deg, rgba(245,158,11,0.15) 0%, rgba(217,119,6,0.1) 100%); padding: 20px; border-radius: 12px; margin: 0 0 20px 0; border: 1px solid rgba(245,158,11,0.3);">
-      <h2 style="font-family: 'Playfair Display', Georgia, serif; margin: 0 0 15px 0; color: #f59e0b; font-size: 26px; font-weight: 700; text-align: center; letter-spacing: 0.5px;">🎊 Event Details</h2>
-      
-      <table style="width: 100%; border-collapse: collapse;">
-        <tr>
-          <td style="padding: 8px 0; color: #fbbf24; font-weight: 600; font-size: 14px; width: 35%;">📅 Date:</td>
-          <td style="padding: 8px 0; color: #e5e5e5; font-size: 14px;">${eventDate}</td>
-        </tr>
-        <tr>
-          <td style="padding: 8px 0; color: #fbbf24; font-weight: 600; font-size: 14px;">⏰ Time:</td>
-          <td style="padding: 8px 0; color: #e5e5e5; font-size: 14px;">${startTime} - ${endTime}</td>
-        </tr>
-        <tr>
-          <td style="padding: 8px 0; color: #fbbf24; font-weight: 600; font-size: 14px;">📍 Venue:</td>
-          <td style="padding: 8px 0; color: #e5e5e5; font-size: 14px;">${event.venueName}</td>
-        </tr>
-        <tr>
-          <td style="padding: 8px 0; color: #fbbf24; font-weight: 600; font-size: 14px;">🗺️ Address:</td>
-          <td style="padding: 8px 0; color: #e5e5e5; font-size: 14px;">${event.venueAddress}, ${event.venueCity}, ${event.venueState} ${event.venueZipCode}</td>
-        </tr>
-        <tr>
-          <td style="padding: 8px 0; color: #fbbf24; font-weight: 600; font-size: 14px;">👔 Dress Code:</td>
-          <td style="padding: 8px 0; color: #e5e5e5; font-size: 14px;">${event.dressCode}</td>
-        </tr>
-      </table>
-    </div>
-    
-    ${event.description ? `<p style="color: #e5e5e5; font-size: 14px; font-style: italic; margin: 0 0 20px 0; line-height: 1.6;">${event.description}</p>` : ''}
-    
-    <!-- Personal Invitation Notice -->
-    <div style="background: linear-gradient(135deg, rgba(245,158,11,0.2) 0%, rgba(217,119,6,0.15) 100%); padding: 15px; border-radius: 8px; margin: 0 0 20px 0; border-left: 4px solid #f59e0b;">
-      <p style="margin: 0; color: #ffffff; font-size: 14px; line-height: 1.6;"><strong style="color: #fbbf24;">🔒 Personal Invitation:</strong> This is your unique invitation link. Please do not share it.</p>
-    </div>
-    
-    <!-- RSVP Button -->
-    <div style="text-align: center; margin: 25px 0;">
-      <a href="${rsvpLink}" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #ffffff; padding: 16px 48px; text-decoration: none; border-radius: 50px; display: inline-block; font-weight: 600; font-size: 18px; box-shadow: 0 4px 15px rgba(245,158,11,0.4); transition: all 0.3s;">
-        RSVP Now
-      </a>
-    </div>
-    
-    <p style="color: #999999; font-size: 13px; margin: 20px 0 0 0; text-align: center;">
-      This invitation expires on ${new Date(invite.expiresAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}.
-    </p>
-    
-    <!-- Divider -->
-    <div style="margin: 20px 0; text-align: center;">
-      <span style="font-size: 24px;">🥂 ✨ 🍷</span>
-    </div>
-    
-    <p style="color: #999999; font-size: 13px; margin: 15px 0 0 0; line-height: 1.5;">
-      Questions? Contact us at <a href="mailto:contact@levyeromedia.com" style="color: #f59e0b; text-decoration: none;">contact@levyeromedia.com</a>
-    </p>
-    
-    <p style="color: #999999; font-size: 13px; margin: 10px 0 0 0;">
-      We look forward to seeing you!<br>
-      <strong style="color: #f59e0b;">LEM Team</strong>
-    </p>
-  </div>
-</body>
-</html>
-    `.trim();
+    // Hero and logo image URLs
+    const heroImageUrl = 'https://i.ibb.co/XZJHXcCp/mask-group.png';
+    const logoUrl = 'https://i.ibb.co/HpRR250c/lemm.png';
+
+    // Generate HTML email with responsive design matching confirmation emails
+    const htmlContent = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"><style>body,table,td{-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%}table{border-collapse:collapse!important}img{border:0;height:auto;line-height:100%;outline:none;text-decoration:none}@media(min-width:600px){.r{display:table-row!important}.c{display:table-cell!important;vertical-align:middle!important}.l{width:50%!important}.g{width:50%!important}.d-show{display:block!important}.m-show{display:none!important}.d-push{padding-top:60px!important}}@media(max-width:599px){.m-show{display:block!important}.d-show{display:none!important}.m-stack{display:block!important;width:100%!important}.m-title{font-size:20px!important;letter-spacing:1px!important;white-space:nowrap!important}}</style></head><body style="margin:0;padding:0;font-family:Inter,sans-serif;background:#000"><table width="100%" cellpadding="0" cellspacing="0" style="max-width:1200px;margin:0 auto;background:#000"><tr class="r"><td class="c l m-stack" style="padding:0;background:#000;vertical-align:middle"><div style="padding:30px 40px;background:#000;text-align:center"><div style="margin:0 0 30px;overflow:hidden;border-radius:12px;box-shadow:0 8px 24px rgba(255,140,0,.3);border:1px solid rgba(255,140,0,.4)"><img src="${heroImageUrl}" alt="Event" style="width:100%;height:auto;display:block;max-height:280px;object-fit:cover"></div><p style="color:#ccc;font-size:15px;margin:0 0 5px;font-weight:300;line-height:1.6">Greetings!</p><p style="color:#ccc;font-size:15px;margin:0 0 20px;font-weight:300;line-height:1.6">You're invited to an exclusive event</p><div class="m-show" style="display:none;margin:0 0 20px"><img src="${logoUrl}" alt="Logo" style="max-width:200px;width:70%;height:auto;margin:0 auto;display:block"></div><h1 class="m-title" style="color:#fff;font-size:34px;margin:0 0 15px;font-weight:700;letter-spacing:2px;line-height:1.2">${event.eventName.toUpperCase()}</h1><div style="width:80px;height:2px;background:#ff8c00;margin:0 auto 20px"></div>${event.description ? `<p style="color:#ccc;font-size:15px;line-height:1.6;margin:0 0 30px;font-weight:300">${event.description}</p>` : ''}<a href="${rsvpLink}" class="d-show" style="display:inline-block;background:#666;color:#fff;text-decoration:none;padding:14px 50px;border-radius:30px;font-size:14px;font-weight:600;letter-spacing:1px">RSVP NOW</a></div></td><td class="c g m-stack" style="padding:0;background:#000;vertical-align:middle"><div style="padding:40px 35px 25px;text-align:center" class="d-show"><img src="${logoUrl}" alt="Logo" style="max-width:280px;width:100%;height:auto;margin:0 auto"></div><div style="padding:0 35px 35px" class="d-push"><div style="border:2px solid #ff8c00;border-radius:12px;padding:30px 25px;background:rgba(0,0,0,.5)"><h2 style="color:#fff;font-size:24px;text-align:center;margin:0 0 12px;font-weight:600">Event Details</h2><div style="width:60px;height:2px;background:#ff8c00;margin:0 auto 25px"></div><table width="100%" cellpadding="0" cellspacing="0"><tr><td style="color:#fff;font-size:15px;padding:10px 0;text-align:center"><img src="https://i.ibb.co/qYVNy2F9/calendar.png" alt="" style="width:16px;height:16px;vertical-align:middle;margin-right:8px"><strong style="vertical-align:middle;font-weight:500">${eventDate}</strong></td></tr><tr><td style="color:#fff;font-size:15px;padding:10px 0;text-align:center"><img src="https://i.ibb.co/vxNCHPp7/clock.png" alt="" style="width:16px;height:16px;vertical-align:middle;margin-right:8px"><strong style="vertical-align:middle;font-weight:500">${startTime} - ${endTime}</strong></td></tr><tr><td style="color:#fff;font-size:15px;padding:10px 0;text-align:center"><img src="https://i.ibb.co/S4q77qPS/location.png" alt="" style="width:16px;height:16px;vertical-align:middle;margin-right:8px"><strong style="vertical-align:middle;font-weight:500">${event.venueName},</strong><br><span style="color:#ccc;font-size:13px;font-weight:300">${event.venueAddress}, ${event.venueCity}, ${event.venueState} ${event.venueZipCode}</span></td></tr><tr><td style="color:#fff;font-size:15px;padding:10px 0;text-align:center"><img src="https://i.ibb.co/RkXwWsHv/bow.png" alt="" style="width:16px;height:16px;vertical-align:middle;margin-right:8px"><strong style="vertical-align:middle;font-weight:500">Dress ${event.dressCode}</strong></td></tr></table></div><div class="m-show" style="display:none;margin:25px 0 0;text-align:center"><a href="${rsvpLink}" style="display:inline-block;background:#ff8c00;color:#fff;text-decoration:none;padding:12px 40px;border-radius:25px;font-size:14px;font-weight:600;letter-spacing:1px;border:2px solid #ff8c00">RSVP NOW</a></div></div></td></tr><tr><td colspan="2" style="background:#ff8c00;padding:18px 40px;text-align:center"><p style="margin:0 0 5px;color:#000;font-size:14px;font-weight:600">Personal Invitation</p><p style="margin:0;color:#000;font-size:12px;font-weight:400">This is your unique invitation link. Please do not share it.</p></td></tr><tr><td colspan="2" style="background:#000;padding:20px 40px;text-align:center;border-top:1px solid #333"><p style="color:#999;font-size:13px;margin:0 0 10px;font-weight:300">Questions? Contact us at <a href="mailto:contact@levyeromedia.com" style="color:#ff8c00;text-decoration:none">contact@levyeromedia.com</a></p><div class="m-show" style="display:none;margin:15px 0 0"><img src="${logoUrl}" alt="Logo" style="max-width:150px;width:50%;height:auto;margin:0 auto;display:block;opacity:.6"></div></td></tr></table></body></html>`.trim();
 
     // Generate plain text version
-    const textContent = `
-You're Invited!
+    const textContent = `Greetings! You're invited to an exclusive event
 
-Hello,
+${event.eventName.toUpperCase()}
 
-You're invited to an exclusive event: ${event.eventName}
-
-EVENT DETAILS
-Date: ${eventDate}
-Time: ${startTime} - ${endTime}
-Venue: ${event.venueName}
-Address: ${event.venueAddress}, ${event.venueCity}, ${event.venueState} ${event.venueZipCode}
-Dress Code: ${event.dressCode}
-
-${event.description || ''}
+EVENT: ${eventDate}, ${startTime}-${endTime}
+VENUE: ${event.venueName}, ${event.venueAddress}, ${event.venueCity}, ${event.venueState} ${event.venueZipCode}
+DRESS: ${event.dressCode}
 
 PERSONAL INVITATION: This is your unique invitation link. Please do not share it.
 
-RSVP NOW: ${rsvpLink}
+RSVP: ${rsvpLink}
 
-This invitation expires on ${new Date(invite.expiresAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}.
-
-If you have any questions, please contact us at contact@levyeromedia.com
-
-We look forward to seeing you!
-LEM Team
-    `.trim();
+Questions? contact@levyeromedia.com`.trim();
 
     // Send email using EmailService
     await this.emailService.sendInvitationEmail(
