@@ -1,6 +1,6 @@
 import { Controller, Get, Param, Post, Body, BadRequestException } from '@nestjs/common';
 import { InviteService } from './invite.service';
-import type { CreateInviteDto, BulkCreateInvitesDto } from './invite.service';
+import type { CreateInviteDto, BulkCreateInvitesDto, InviteWithEvent } from './invite.service';
 import { Invite } from '@prisma/client';
 
 @Controller('invite')
@@ -58,6 +58,45 @@ export class InviteController {
   async resendInvitation(@Param('inviteId') inviteId: string): Promise<{ message: string }> {
     await this.inviteService.resendInvitation(inviteId);
     return { message: 'Invitation email resent successfully' };
+  }
+
+  @Post('send-reminder/:inviteId')
+  async sendReminder(@Param('inviteId') inviteId: string): Promise<{ message: string }> {
+    await this.inviteService.sendReminderById(inviteId);
+    return { message: 'Reminder email sent successfully' };
+  }
+
+  @Post('process-reminders')
+  async processReminders(
+    @Body() body: { reminderIntervalDays?: number }
+  ): Promise<{ sent: number; failed: number; message: string }> {
+    const intervalDays = body.reminderIntervalDays || 7;
+    const results = await this.inviteService.processReminders(intervalDays);
+    return {
+      ...results,
+      message: `Processed reminders: ${results.sent} sent, ${results.failed} failed`,
+    };
+  }
+
+  @Get('pending-reminders/:reminderIntervalDays')
+  async getPendingReminders(
+    @Param('reminderIntervalDays') reminderIntervalDays: string
+  ): Promise<{ count: number; invites: InviteWithEvent[] }> {
+    const intervalDays = parseInt(reminderIntervalDays) || 7;
+    const invites = await this.inviteService.getPendingInvitesForReminders(intervalDays);
+    return {
+      count: invites.length,
+      invites,
+    };
+  }
+
+  @Get('pending-reminders')
+  async getPendingRemindersDefault(): Promise<{ count: number; invites: InviteWithEvent[] }> {
+    const invites = await this.inviteService.getPendingInvitesForReminders(7);
+    return {
+      count: invites.length,
+      invites,
+    };
   }
 
   @Get(':token')

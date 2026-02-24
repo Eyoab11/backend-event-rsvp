@@ -39,16 +39,18 @@ model Event {
 }
 
 model Invite {
-  id         String      @id @default(cuid())
-  email      String
-  token      String      @unique
-  isUsed     Boolean     @default(false)
-  expiresAt  DateTime
-  eventId    String
-  createdAt  DateTime    @default(now())
+  id                String      @id @default(cuid())
+  email             String
+  token             String      @unique
+  isUsed            Boolean     @default(false)
+  expiresAt         DateTime
+  eventId           String
+  createdAt         DateTime    @default(now())
+  lastReminderSent  DateTime?
+  reminderCount     Int         @default(0)
   
-  event      Event       @relation(fields: [eventId], references: [id])
-  attendee   Attendee?
+  event             Event       @relation(fields: [eventId], references: [id])
+  attendee          Attendee?
   
   @@map("invites")
 }

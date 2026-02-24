@@ -10,9 +10,21 @@ import { AdminModule } from './modules/admin/admin.module';
 import { CalendarModule } from './modules/calendar/calendar.module';
 import { EmailModule } from './modules/email/email.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { SchedulerModule } from './modules/scheduler/scheduler.module';
 
 @Module({
-  imports: [PrismaModule, EventModule, InviteModule, RsvpModule, QrModule, AdminModule, CalendarModule, EmailModule, AuthModule],
+  imports: [
+    PrismaModule,
+    EventModule,
+    InviteModule,
+    RsvpModule,
+    QrModule,
+    AdminModule,
+    CalendarModule,
+    EmailModule,
+    AuthModule,
+    SchedulerModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
