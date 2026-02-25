@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Delete, Header, Post } from '@nestjs/common';
+import { Controller, Get, Param, Delete, Header, Post, Body } from '@nestjs/common';
 import { AdminService, EventStats, DashboardStats } from './admin.service';
 
 @Controller('admin')
@@ -43,6 +43,14 @@ export class AdminController {
   ): Promise<{ message: string }> {
     await this.adminService.cancelAttendee(attendeeId);
     return { message: 'Attendee cancelled successfully' };
+  }
+
+  @Post('events/:eventId/generate-tokens')
+  async generateTokens(
+    @Param('eventId') eventId: string,
+    @Body() body: { count: number },
+  ): Promise<{ tokens: Array<{ token: string; url: string; expiresAt: string }> }> {
+    return this.adminService.generateTokens(eventId, body.count);
   }
 }
 

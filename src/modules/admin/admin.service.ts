@@ -383,4 +383,54 @@ export class AdminService {
     await this.sheetsService.initializeSheet();
     return { message: 'Sheet initialization triggered' };
   }
+
+  async generateTokens(
+    eventId: string,
+    count: number,
+  ): Promise<{ tokens: Array<{ token: string; url: string; expiresAt: string }> }> {
+    // Validate event exists
+    const event = await this.prisma.event.findUnique({
+      where: { id: eventId },
+    });
+
+    if (!event) {
+      throw new NotFoundException('Event not found');
+    }
+
+    // Validate count
+    if (count < 1 || count > 100) {
+      throw new Error('Count must be between 1 and 100');
+    }
+
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const tokens: Array<{ token: string; url: string; expiresAt: string }> = [];
+
+    // Set expiration (30 days from now)
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 30);
+
+    // Generate tokens
+    for (let i = 0; i < count; i++) {
+      const { randomUUID } = await import('crypto');
+      const token = randomUUID();
+
+      // Create invite without email (for manual distribution)
+      await this.prisma.invite.create({
+        data: {
+          email: '', // Empty email for manual tokens
+          token,
+          expiresAt,
+          eventId,
+        },
+      });
+
+      tokens.push({
+        token,
+        url: `${frontendUrl}/?token=${token}`,
+        expiresAt: expiresAt.toISOString(),
+      });
+    }
+
+    return { tokens };
+  }
 }

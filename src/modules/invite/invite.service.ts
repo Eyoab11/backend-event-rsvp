@@ -248,9 +248,20 @@ Questions? info@levyeromomedia.com`.trim();
   /**
    * Get all invites for an event
    */
-  async getEventInvites(eventId: string): Promise<Invite[]> {
+  async getEventInvites(eventId: string) {
     return this.prisma.invite.findMany({
       where: { eventId },
+      include: {
+        attendee: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            registrationId: true,
+            status: true,
+          },
+        },
+      },
       orderBy: { createdAt: 'desc' },
     });
   }
