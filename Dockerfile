@@ -3,41 +3,39 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# 1️⃣ Copy package files first (better caching)
 COPY package*.json ./
 
-RUN npm i
+RUN npm ci
 
+# 2️⃣ Copy source code
 COPY . .
 
-# Generate Prisma client
+# 3️⃣ Generate Prisma client
 RUN npx prisma generate
 
-# Build NestJS app
+# 4️⃣ Build NestJS app
 RUN npm run build
 
+
 # -------- PRODUCTION STAGE --------
-FROM node:20-slim as runner
+FROM node:20-slim AS runner
 
 WORKDIR /app
 
-# This line fixes your exact error
 RUN apt-get update -y && apt-get install -y openssl
 
-# Required for Prisma
-#RUN apk add --no-cache openssl libssl1.1
-
+# 5️⃣ Copy only necessary files
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/prisma ./prisma
 
-RUN npm i
-
-RUN npx prisma generate
-
-# Copy entrypoint script
+# Copy entrypoint
 COPY entrypoint.sh ./entrypoint.sh
-
 RUN chmod +x entrypoint.sh
+
+ENV NODE_ENV=production
 
 EXPOSE 3000
 
