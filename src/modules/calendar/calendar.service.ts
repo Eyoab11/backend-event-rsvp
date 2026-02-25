@@ -65,8 +65,8 @@ export class CalendarService {
       status: 'CONFIRMED',
       busyStatus: 'BUSY',
       organizer: {
-        name: 'LEM Ventures',
-        email: 'events@levyeromedia.com',
+        name: 'Levy Eromo Media',
+        email: 'info@levyeromomedia.com',
       },
       attendees: [
         {

@@ -76,8 +76,8 @@ describe('CalendarService', () => {
       expect(result).toContain('john@test.com');
 
       // Verify organizer
-      expect(result).toContain('LEM Ventures');
-      expect(result).toContain('events@levyeromedia.com');
+      expect(result).toContain('Levy Eromo Media');
+      expect(result).toContain('info@levyeromomedia.com');
 
       // Verify alarms/reminders
       expect(result).toContain('BEGIN:VALARM');
@@ -188,7 +188,7 @@ describe('CalendarService', () => {
   describe('generateFilename', () => {
     it('should generate sanitized filename', () => {
       const result = service.generateFilename(
-        'LEM Ventures Launch Event',
+        'Levy Eromo Media Launch Event',
         'John Doe',
       );
 
