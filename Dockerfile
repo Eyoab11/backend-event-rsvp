@@ -27,9 +27,12 @@ RUN apt-get update -y && apt-get install -y openssl
 
 # 5️⃣ Copy only necessary files
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/prisma ./prisma
+
+RUN npm i
+
+RUN npx prisma generate
 
 # Copy entrypoint
 COPY entrypoint.sh ./entrypoint.sh
