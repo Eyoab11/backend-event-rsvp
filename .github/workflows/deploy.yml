@@ -28,6 +28,19 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/event-rsvp-api:latest
+          tags: ${{ secrets.DOCKER_USERNAME }}/event-rsvp-api:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd ${{ secrets.VPS_APP_DIR }}
+            docker pull ${{ secrets.DOCKER_USERNAME }}/event-rsvp-api:${{ github.sha }}
+            docker compose down -v
+            docker-compose up -d --build
+          
