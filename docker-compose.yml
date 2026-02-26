@@ -2,21 +2,11 @@ version: "3.9"
 
 services:
   app:
-    build: .
+    image: saulgoodmn/event-rsvp-api:latest
     container_name: event-rsvp-api
     restart: always
     ports:
       - "4002:3002"
-    env_file:
-      - .env
-    depends_on:
-      - db
-      - migrate
-
-  migrate:
-    build: .
-    container_name: event-rsvp-migrate
-    command: sh -c "npx prisma migrate deploy "
     env_file:
       - .env
     depends_on:
