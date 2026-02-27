@@ -1,10 +1,18 @@
 import 'dotenv/config';
 import { NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { join } from 'path';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  
+  // Serve static files (for email images)
+  // Files are copied from public/email-images to dist/email-images by nest-cli.json
+  app.useStaticAssets(join(__dirname, '..', 'email-images'), {
+    prefix: '/static/email-images/',
+  });
   
   // Enable CORS for frontend and admin panel
   const allowedOrigins = [
@@ -43,5 +51,6 @@ async function bootstrap() {
   await app.listen(port);
   console.log(`🚀 Event RSVP Backend running on port ${port}`);
   console.log(`📡 CORS enabled for: ${allowedOrigins.join(', ')}`);
+  console.log(`📁 Static files served at: /static/`);
 }
 bootstrap();

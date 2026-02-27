@@ -3,8 +3,7 @@ name: Build and Push Docker Image
 on:
   push:
     branches:
-      - master
-      - main
+      - staging
 
 jobs:
   build:
@@ -28,7 +27,8 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/event-rsvp-api:${{ github.sha }}
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/event-rsvp-api:staging            
           no-cache: true
       
       # - name: Deploy to VPS
