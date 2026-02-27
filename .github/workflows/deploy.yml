@@ -28,7 +28,8 @@ jobs:
           context: .
           push: true
           tags: |
-            ${{ secrets.DOCKER_USERNAME }}/event-rsvp-api:staging            
+            ${{ secrets.DOCKER_USERNAME }}/event-rsvp-api:latest
+                       
           no-cache: true
       
       # - name: Deploy to VPS
