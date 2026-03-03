@@ -22,18 +22,19 @@ export class CalendarService {
     const [endHour, endMinute] = event.eventEndTime.split(':').map(Number);
 
     // Create start and end date arrays for ICS format [year, month, day, hour, minute]
+    // Use UTC methods to avoid timezone conversion
     const start: DateArray = [
-      eventDate.getFullYear(),
-      eventDate.getMonth() + 1, // ICS months are 1-indexed
-      eventDate.getDate(),
+      eventDate.getUTCFullYear(),
+      eventDate.getUTCMonth() + 1, // ICS months are 1-indexed
+      eventDate.getUTCDate(),
       startHour,
       startMinute,
     ];
 
     const end: DateArray = [
-      eventDate.getFullYear(),
-      eventDate.getMonth() + 1,
-      eventDate.getDate(),
+      eventDate.getUTCFullYear(),
+      eventDate.getUTCMonth() + 1,
+      eventDate.getUTCDate(),
       endHour,
       endMinute,
     ];

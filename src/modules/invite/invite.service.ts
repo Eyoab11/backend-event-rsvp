@@ -200,6 +200,7 @@ export class InviteService {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
+      timeZone: 'UTC',
     });
 
     // Format times to 12-hour format
@@ -326,6 +327,7 @@ Questions? info@levyeromomedia.com`.trim();
       year: 'numeric',
       month: 'long',
       day: 'numeric',
+      timeZone: 'UTC',
     });
 
     // Format times to 12-hour format

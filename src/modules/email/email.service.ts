@@ -304,6 +304,7 @@ export class EmailService {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
+      timeZone: 'UTC',
     });
     const startTime = this.formatTimeTo12Hour(event.eventStartTime);
     const endTime = this.formatTimeTo12Hour(event.eventEndTime);
@@ -321,6 +322,7 @@ export class EmailService {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
+      timeZone: 'UTC',
     });
     const startTime = this.formatTimeTo12Hour(event.eventStartTime);
     const endTime = this.formatTimeTo12Hour(event.eventEndTime);
@@ -350,6 +352,7 @@ Questions? info@levyeromomedia.com`.trim();
       year: 'numeric',
       month: 'long',
       day: 'numeric',
+      timeZone: 'UTC',
     });
     const startTime = this.formatTimeTo12Hour(event.eventStartTime);
     const endTime = this.formatTimeTo12Hour(event.eventEndTime);
@@ -452,6 +455,7 @@ Questions? info@levyeromomedia.com`.trim();
       year: 'numeric',
       month: 'long',
       day: 'numeric',
+      timeZone: 'UTC',
     });
     const startTime = this.formatTimeTo12Hour(event.eventStartTime);
     const endTime = this.formatTimeTo12Hour(event.eventEndTime);
@@ -497,6 +501,7 @@ LEM Team
       year: 'numeric',
       month: 'long',
       day: 'numeric',
+      timeZone: 'UTC',
     });
     const startTime = this.formatTimeTo12Hour(event.eventStartTime);
     const endTime = this.formatTimeTo12Hour(event.eventEndTime);
