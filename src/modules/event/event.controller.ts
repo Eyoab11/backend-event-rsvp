@@ -34,11 +34,11 @@ export class EventController {
 
   @Post()
   async createEvent(@Body() data: CreateEventDto): Promise<Event> {
-    // Convert eventDate string to Date object if it's a string
+    // Convert eventDate string to Date object as UTC midnight to avoid timezone shifts
     const eventData = {
       ...data,
       eventDate: typeof data.eventDate === 'string' 
-        ? new Date(data.eventDate) 
+        ? new Date(data.eventDate + 'T00:00:00.000Z') 
         : data.eventDate,
     };
     return this.eventService.create(eventData);
@@ -49,11 +49,11 @@ export class EventController {
     @Param('id') id: string,
     @Body() data: UpdateEventDto,
   ): Promise<Event> {
-    // Convert eventDate string to Date object if it's a string
+    // Convert eventDate string to Date object as UTC midnight to avoid timezone shifts
     const eventData = {
       ...data,
       eventDate: data.eventDate && typeof data.eventDate === 'string'
-        ? new Date(data.eventDate)
+        ? new Date(data.eventDate + 'T00:00:00.000Z')
         : data.eventDate,
     };
     return this.eventService.update(id, eventData);
