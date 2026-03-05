@@ -38,6 +38,8 @@ export interface DashboardStats {
   totalInvites: number;
   usedInvites: number;
   pendingInvites: number;
+  totalCheckedIn: number;
+  checkInRate: number;
   recentActivity: Activity[];
 }
 
@@ -283,11 +285,56 @@ export class AdminService {
       },
     });
 
+    // Get check-in statistics
+    const totalCheckedInAttendees = await this.prisma.attendee.count({
+      where: {
+        checkedInAt: {
+          not: null,
+        },
+      },
+    });
+
+    const totalCheckedInPlusOnes = await this.prisma.plusOne.count({
+      where: {
+        checkedInAt: {
+          not: null,
+        },
+      },
+    });
+
+    const totalCheckedIn = totalCheckedInAttendees + totalCheckedInPlusOnes;
+
+    // Calculate check-in rate
+    const totalPossibleAttendees = totalAttendees + await this.prisma.plusOne.count();
+    const checkInRate = totalPossibleAttendees > 0 
+      ? Math.round((totalCheckedIn / totalPossibleAttendees) * 100 * 100) / 100 
+      : 0;
+
     // Get recent activity (last 10 activities)
     const recentAttendees = await this.prisma.attendee.findMany({
       take: 5,
       orderBy: {
         createdAt: 'desc',
+      },
+      include: {
+        event: {
+          select: {
+            eventName: true,
+          },
+        },
+      },
+    });
+
+    // Get recent check-ins
+    const recentCheckIns = await this.prisma.attendee.findMany({
+      take: 5,
+      where: {
+        checkedInAt: {
+          not: null,
+        },
+      },
+      orderBy: {
+        checkedInAt: 'desc',
       },
       include: {
         event: {
@@ -332,6 +379,16 @@ export class AdminService {
       });
     });
 
+    recentCheckIns.forEach((attendee) => {
+      activities.push({
+        id: `checkin-${attendee.id}`,
+        type: 'check_in',
+        description: `${attendee.name} checked in`,
+        timestamp: attendee.checkedInAt!.toISOString(),
+        eventName: attendee.event.eventName,
+      });
+    });
+
     recentInvites.forEach((invite) => {
       activities.push({
         id: `invite-${invite.id}`,
@@ -370,6 +427,8 @@ export class AdminService {
       totalInvites,
       usedInvites,
       pendingInvites,
+      totalCheckedIn,
+      checkInRate,
       recentActivity,
     };
   }
