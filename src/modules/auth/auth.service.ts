@@ -30,6 +30,13 @@ export class AuthService {
       name: 'Admin User',
       role: 'admin',
     },
+    {
+      id: 'checkin-1',
+      email: process.env.CHECKIN_EMAIL || 'checkin@example.com',
+      password: process.env.CHECKIN_PASSWORD || 'checkin123',
+      name: 'Check-in Staff',
+      role: 'checkin',
+    },
   ];
 
   private readonly jwtSecret = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
