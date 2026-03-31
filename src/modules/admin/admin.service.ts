@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { SheetsService } from '../sheets/sheets.service';
+import { EmailService } from '../email/email.service';
 import { AttendeeStatus, Prisma } from '@prisma/client';
 
 // Type for attendee with relations
@@ -56,6 +57,7 @@ export class AdminService {
   constructor(
     private prisma: PrismaService,
     private sheetsService: SheetsService,
+    private emailService: EmailService,
   ) {}
 
   async getAttendees(eventId: string): Promise<AttendeeWithRelations[]> {
@@ -431,6 +433,85 @@ export class AdminService {
       checkInRate,
       recentActivity,
     };
+  }
+
+  async addPlusOne(
+    attendeeId: string,
+    data: { name: string; company: string; title: string; email: string },
+  ) {
+    const attendee = await this.prisma.attendee.findUnique({
+      where: { id: attendeeId },
+      include: { plusOne: true, event: true },
+    });
+    if (!attendee) throw new NotFoundException('Attendee not found');
+    if (attendee.plusOne) throw new Error('Attendee already has a plus one');
+
+    const { randomUUID } = await import('crypto');
+    const qrCode = `PLU-${randomUUID().replace(/-/g, '').substring(0, 12).toUpperCase()}`;
+    const registrationId = `${attendee.registrationId}-P1`;
+
+    const plusOne = await this.prisma.plusOne.create({
+      data: {
+        ...data,
+        qrCode,
+        registrationId,
+        attendeeId,
+      },
+    });
+
+    // Update event capacity
+    await this.prisma.event.update({
+      where: { id: attendee.eventId },
+      data: { currentRegistrations: { increment: 1 } },
+    });
+
+    // Send confirmation email to plus one
+    try {
+      const QRCode = await import('qrcode');
+      const qrCodeImage = await QRCode.toDataURL(qrCode, {
+        errorCorrectionLevel: 'H',
+        type: 'image/png',
+        width: 300,
+        margin: 2,
+      });
+
+      await this.emailService.sendPlusOneConfirmationEmail({
+        event: attendee.event,
+        plusOne: { ...plusOne },
+        primaryAttendeeName: attendee.name,
+        qrCodeImage,
+      });
+    } catch (err) {
+      // Don't fail the whole operation if email fails
+      console.error('Failed to send plus one confirmation email:', err);
+    }
+
+    return plusOne;
+  }
+
+  async updatePlusOne(
+    plusOneId: string,
+    data: { name?: string; company?: string; title?: string; email?: string },
+  ) {
+    const plusOne = await this.prisma.plusOne.findUnique({ where: { id: plusOneId } });
+    if (!plusOne) throw new NotFoundException('Plus one not found');
+    return this.prisma.plusOne.update({ where: { id: plusOneId }, data });
+  }
+
+  async deletePlusOne(plusOneId: string): Promise<void> {
+    const plusOne = await this.prisma.plusOne.findUnique({
+      where: { id: plusOneId },
+      include: { attendee: true },
+    });
+    if (!plusOne) throw new NotFoundException('Plus one not found');
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.plusOne.delete({ where: { id: plusOneId } });
+      await tx.event.update({
+        where: { id: plusOne.attendee.eventId },
+        data: { currentRegistrations: { decrement: 1 } },
+      });
+    });
   }
 
   async getSheetUrl(): Promise<{ url: string | null }> {

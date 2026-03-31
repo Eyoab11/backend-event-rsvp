@@ -71,7 +71,7 @@ model Attendee {
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
   
-  invite           Invite         @relation(fields: [inviteId], references: [id])
+  invite           Invite         @relation(fields: [inviteId], references: [id], onDelete: Cascade)
   event            Event          @relation(fields: [eventId], references: [id])
   plusOne          PlusOne?
   
@@ -90,7 +90,7 @@ model PlusOne {
   checkedInAt    DateTime?
   createdAt      DateTime @default(now())
   
-  attendee       Attendee @relation(fields: [attendeeId], references: [id])
+  attendee       Attendee @relation(fields: [attendeeId], references: [id], onDelete: Cascade)
   
   @@map("plus_ones")
 }
