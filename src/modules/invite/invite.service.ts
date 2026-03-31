@@ -22,6 +22,11 @@ export interface BulkCreateInvitesDto {
   sendEmails?: boolean;
 }
 
+export interface UpdateInviteDto {
+  email?: string;
+  expiresAt?: string;
+}
+
 @Injectable()
 export class InviteService {
   constructor(
@@ -99,6 +104,43 @@ export class InviteService {
       include: {
         event: true,
       },
+    });
+  }
+
+  async updateInvite(id: string, data: UpdateInviteDto): Promise<Invite> {
+    const invite = await this.prisma.invite.findUnique({ where: { id } });
+    if (!invite) throw new NotFoundException('Invite not found');
+
+    const updateData: any = {};
+    if (data.email !== undefined) updateData.email = data.email;
+    if (data.expiresAt !== undefined) updateData.expiresAt = new Date(data.expiresAt);
+
+    return this.prisma.invite.update({ where: { id }, data: updateData });
+  }
+
+  async deleteInvite(id: string): Promise<void> {
+    const invite = await this.prisma.invite.findUnique({
+      where: { id },
+      include: { attendee: { include: { plusOne: true } } },
+    });
+    if (!invite) throw new NotFoundException('Invite not found');
+
+    await this.prisma.$transaction(async (tx) => {
+      if (invite.attendee) {
+        const slotsToFree = invite.attendee.plusOne ? 2 : 1;
+        // Delete plus one if exists
+        if (invite.attendee.plusOne) {
+          await tx.plusOne.delete({ where: { id: invite.attendee.plusOne.id } });
+        }
+        // Delete attendee
+        await tx.attendee.delete({ where: { id: invite.attendee.id } });
+        // Free up capacity
+        await tx.event.update({
+          where: { id: invite.eventId },
+          data: { currentRegistrations: { decrement: slotsToFree } },
+        });
+      }
+      await tx.invite.delete({ where: { id } });
     });
   }
 
@@ -264,6 +306,7 @@ Questions? info@levyeromomedia.com`.trim();
             email: true,
             registrationId: true,
             status: true,
+            plusOne: true,
           },
         },
       },

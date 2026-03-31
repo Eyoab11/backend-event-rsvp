@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Delete, Header, Post, Body } from '@nestjs/common';
+import { Controller, Get, Param, Delete, Header, Post, Patch, Body } from '@nestjs/common';
 import { AdminService, EventStats, DashboardStats } from './admin.service';
 
 @Controller('admin')
@@ -51,6 +51,28 @@ export class AdminController {
     @Body() body: { count: number },
   ): Promise<{ tokens: Array<{ token: string; url: string; expiresAt: string }> }> {
     return this.adminService.generateTokens(eventId, body.count);
+  }
+
+  @Post('attendees/:attendeeId/plus-one')
+  async addPlusOne(
+    @Param('attendeeId') attendeeId: string,
+    @Body() body: { name: string; company: string; title: string; email: string },
+  ) {
+    return this.adminService.addPlusOne(attendeeId, body);
+  }
+
+  @Patch('plus-ones/:plusOneId')
+  async updatePlusOne(
+    @Param('plusOneId') plusOneId: string,
+    @Body() body: { name?: string; company?: string; title?: string; email?: string },
+  ) {
+    return this.adminService.updatePlusOne(plusOneId, body);
+  }
+
+  @Delete('plus-ones/:plusOneId')
+  async deletePlusOne(@Param('plusOneId') plusOneId: string): Promise<{ message: string }> {
+    await this.adminService.deletePlusOne(plusOneId);
+    return { message: 'Plus one removed successfully' };
   }
 }
 

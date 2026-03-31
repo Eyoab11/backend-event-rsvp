@@ -1,6 +1,6 @@
-import { Controller, Get, Param, Post, Body, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Param, Post, Patch, Delete, Body, BadRequestException, HttpCode } from '@nestjs/common';
 import { InviteService } from './invite.service';
-import type { CreateInviteDto, BulkCreateInvitesDto, InviteWithEvent } from './invite.service';
+import type { CreateInviteDto, BulkCreateInvitesDto, InviteWithEvent, UpdateInviteDto } from './invite.service';
 import { Invite } from '@prisma/client';
 
 @Controller('invite')
@@ -97,6 +97,20 @@ export class InviteController {
       count: invites.length,
       invites,
     };
+  }
+
+  @Patch(':id')
+  async updateInvite(
+    @Param('id') id: string,
+    @Body() updateDto: UpdateInviteDto,
+  ): Promise<Invite> {
+    return this.inviteService.updateInvite(id, updateDto);
+  }
+
+  @Delete(':id')
+  @HttpCode(204)
+  async deleteInvite(@Param('id') id: string): Promise<void> {
+    return this.inviteService.deleteInvite(id);
   }
 
   @Get(':token')
