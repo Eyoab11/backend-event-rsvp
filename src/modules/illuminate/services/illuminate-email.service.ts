@@ -7,12 +7,12 @@ const ILLUMINATE_EVENT = {
   name: 'Illuminate Life Gala',
   date: new Date('2026-06-07T00:00:00Z'), // June 7, 2026
   startTime: '18:00',
-  endTime: '23:00',
-  venueName: 'TBD Venue',
-  venueAddress: '',
-  venueCity: '',
-  venueState: '',
-  venueZipCode: '',
+  endTime: '23:30',
+  venueName: 'The Beverly Hilton',
+  venueAddress: '9876 Wilshire Blvd',
+  venueCity: 'Beverly Hills',
+  venueState: 'California',
+  venueZipCode: '90210',
   description: 'An elegant evening celebrating life, purpose, and community.',
   dressCode: 'Black Tie',
 };
@@ -183,7 +183,7 @@ export class IlluminateEmailService {
       busyStatus: 'BUSY',
       organizer: {
         name: 'Illuminate Life',
-        email: process.env.FROM_EMAIL || 'info@levyeromomedia.com',
+        email: 'info@levyeromomedia.com',
       },
       attendees: [
         {
@@ -359,13 +359,33 @@ export class IlluminateEmailService {
             </table>
 
             <!-- Calendar Section -->
-            <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e8e3da;border-radius:8px;margin-bottom:28px;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9f6f0;border:2px solid #c9a84c;border-radius:8px;margin-bottom:28px;">
               <tr>
-                <td style="padding:20px 24px;">
-                  <p style="margin:0 0 6px;color:#0a0a0a;font-size:12px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;">Add to Calendar</p>
-                  <p style="margin:0;color:#666;font-size:13px;line-height:1.5;">
-                    A calendar invite (<strong>illuminate-life-gala.ics</strong>) is attached. 
-                    Open it to add the event to Google Calendar, Apple Calendar, or Outlook.
+                <td style="padding:24px;text-align:center;">
+                  <p style="margin:0 0 8px;color:#0a0a0a;font-size:13px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;">📅 Add to Your Calendar</p>
+                  <p style="margin:0 0 16px;color:#555;font-size:14px;line-height:1.6;">
+                    A calendar invite (<strong>illuminate-life-gala.ics</strong>) is attached to this email.<br>
+                    Open the attachment to add the event to:
+                  </p>
+                  <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 auto;">
+                    <tr>
+                      <td style="padding:4px 0;color:#0a0a0a;font-size:13px;text-align:center;">
+                        ✓ Google Calendar
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:4px 0;color:#0a0a0a;font-size:13px;text-align:center;">
+                        ✓ Apple Calendar
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:4px 0;color:#0a0a0a;font-size:13px;text-align:center;">
+                        ✓ Microsoft Outlook
+                      </td>
+                    </tr>
+                  </table>
+                  <p style="margin:16px 0 0;color:#888;font-size:12px;font-style:italic;">
+                    Simply open the .ics file attachment and it will automatically add to your default calendar app.
                   </p>
                 </td>
               </tr>
@@ -384,6 +404,10 @@ export class IlluminateEmailService {
                     <tr>
                       <td style="padding:6px 0;color:#888;font-size:13px;">Time</td>
                       <td style="padding:6px 0;color:#0a0a0a;font-size:13px;">6:00 PM – 11:00 PM</td>
+                    </tr>
+                    <tr>
+                      <td style="padding:6px 0;color:#888;font-size:13px;">Venue</td>
+                      <td style="padding:6px 0;color:#0a0a0a;font-size:13px;">The Beverly Hilton<br><span style="color:#888;font-size:12px;">9876 Wilshire Blvd, Beverly Hills, CA 90210</span></td>
                     </tr>
                     <tr>
                       <td style="padding:6px 0;color:#888;font-size:13px;">Dress Code</td>
@@ -575,6 +599,39 @@ export class IlluminateEmailService {
               </tr>
             </table>
 
+            <!-- Calendar Section -->
+            <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9f6f0;border:2px solid #c9a84c;border-radius:8px;margin-bottom:28px;">
+              <tr>
+                <td style="padding:24px;text-align:center;">
+                  <p style="margin:0 0 8px;color:#0a0a0a;font-size:13px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;">📅 Add to Your Calendar</p>
+                  <p style="margin:0 0 16px;color:#555;font-size:14px;line-height:1.6;">
+                    An updated calendar invite (<strong>illuminate-life-gala.ics</strong>) is attached to this email.<br>
+                    Open the attachment to add the event to:
+                  </p>
+                  <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 auto;">
+                    <tr>
+                      <td style="padding:4px 0;color:#0a0a0a;font-size:13px;text-align:center;">
+                        ✓ Google Calendar
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:4px 0;color:#0a0a0a;font-size:13px;text-align:center;">
+                        ✓ Apple Calendar
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:4px 0;color:#0a0a0a;font-size:13px;text-align:center;">
+                        ✓ Microsoft Outlook
+                      </td>
+                    </tr>
+                  </table>
+                  <p style="margin:16px 0 0;color:#888;font-size:12px;font-style:italic;">
+                    Simply open the .ics file attachment and it will automatically add to your default calendar app.
+                  </p>
+                </td>
+              </tr>
+            </table>
+
             <!-- Event Info -->
             <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9f6f0;border-radius:8px;margin-bottom:28px;">
               <tr>
@@ -588,6 +645,10 @@ export class IlluminateEmailService {
                     <tr>
                       <td style="padding:6px 0;color:#888;font-size:13px;">Time</td>
                       <td style="padding:6px 0;color:#0a0a0a;font-size:13px;">6:00 PM – 11:00 PM</td>
+                    </tr>
+                    <tr>
+                      <td style="padding:6px 0;color:#888;font-size:13px;">Venue</td>
+                      <td style="padding:6px 0;color:#0a0a0a;font-size:13px;">The Beverly Hilton<br><span style="color:#888;font-size:12px;">9876 Wilshire Blvd, Beverly Hills, CA 90210</span></td>
                     </tr>
                     <tr>
                       <td style="padding:6px 0;color:#888;font-size:13px;">Dress Code</td>
@@ -1014,3 +1075,4 @@ export class IlluminateEmailService {
     );
   }
 }
+
