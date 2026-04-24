@@ -1,108 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-generator client {
-  provider      = "prisma-client-js"
-  binaryTargets = ["native", "debian-openssl-3.0.x"]
-}
-
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
-model Event {
-  id                   String   @id @default(cuid())
-  eventName            String
-  description          String?
-  eventDate            DateTime
-  eventStartTime       String   // Format: "19:00"
-  eventEndTime         String   // Format: "23:00"
-  venueName            String
-  venueAddress         String
-  venueCity            String
-  venueState           String
-  venueZipCode         String
-  venueLatitude        Float?
-  venueLongitude       Float?
-  capacity             Int
-  currentRegistrations Int      @default(0)
-  waitlistEnabled      Boolean  @default(true)
-  registrationOpen     Boolean  @default(true)
-  dressCode            String
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
-  
-  invites              Invite[]
-  attendees            Attendee[]
-  
-  @@map("events")
-}
-
-model Invite {
-  id                String      @id @default(cuid())
-  email             String
-  token             String      @unique
-  isUsed            Boolean     @default(false)
-  expiresAt         DateTime
-  eventId           String
-  createdAt         DateTime    @default(now())
-  lastReminderSent  DateTime?
-  reminderCount     Int         @default(0)
-  
-  event             Event       @relation(fields: [eventId], references: [id])
-  attendee          Attendee?
-  
-  @@map("invites")
-}
-
-model Attendee {
-  id               String         @id @default(cuid())
-  name             String
-  company          String
-  title            String
-  email            String
-  status           AttendeeStatus @default(CONFIRMED)
-  qrCode           String         @unique
-  registrationId   String         @unique // Format: "REG-12345678"
-  inviteId         String         @unique
-  eventId          String
-  checkedInAt      DateTime?
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
-  
-  invite           Invite         @relation(fields: [inviteId], references: [id], onDelete: Cascade)
-  event            Event          @relation(fields: [eventId], references: [id])
-  plusOne          PlusOne?
-  
-  @@map("attendees")
-}
-
-model PlusOne {
-  id             String   @id @default(cuid())
-  name           String
-  company        String
-  title          String
-  email          String
-  qrCode         String   @unique
-  registrationId String   @unique
-  attendeeId     String   @unique
-  checkedInAt    DateTime?
-  createdAt      DateTime @default(now())
-  
-  attendee       Attendee @relation(fields: [attendeeId], references: [id], onDelete: Cascade)
-  
-  @@map("plus_ones")
-}
-
-enum AttendeeStatus {
-  CONFIRMED
-  WAITLISTED
-  CANCELLED
-}
-
-
-// Illuminate Life Gala - Additional Models
+// Illuminate Life Gala - Additional Schema
+// Add these models to your main schema.prisma file
 
 model Booking {
   id                   String         @id @default(cuid())
@@ -129,7 +26,7 @@ model Booking {
   // Seat Assignment
   seatNumbers          String[]
   tableNumber          String?
-  seatAssignments      Json?          // [{ name: string, seatNumber: string }]
+  sectionName          String?
   
   // Additional Information
   specialRequests      String?        @db.Text
@@ -146,36 +43,13 @@ model Booking {
   sponsor              Sponsor?
   branding             BrandingOpportunity?
   seats                Seat[]
-  plusOnes             IlluminatePlusOne[]
+  activityLogs         ActivityLog[]
   
   @@index([type])
   @@index([status])
   @@index([customerEmail])
   @@index([createdAt])
   @@map("bookings")
-}
-
-model IlluminatePlusOne {
-  id                   String         @id @default(cuid())
-  bookingId            String
-  name                 String
-  email                String
-  phone                String?
-  qrCode               String         @unique
-  seatNumber           String?
-  dietaryRestrictions  String?        @db.Text
-  specialRequests      String?        @db.Text
-  checkedIn            Boolean        @default(false)
-  checkedInAt          DateTime?
-  createdAt            DateTime       @default(now())
-  updatedAt            DateTime       @updatedAt
-  
-  booking              Booking        @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  
-  @@index([bookingId])
-  @@index([email])
-  @@index([qrCode])
-  @@map("illuminate_plus_ones")
 }
 
 model Sponsor {
@@ -226,19 +100,19 @@ model Seat {
   id                   String         @id @default(cuid())
   seatNumber           String         @unique
   tableNumber          String?
+  sectionName          String
   seatType             SeatType
   isAvailable          Boolean        @default(true)
   bookingId            String?
-  plusOneId            String?        // Reference to Plus One if seat is for a Plus One
   reservedAt           DateTime?
   createdAt            DateTime       @default(now())
   updatedAt            DateTime       @updatedAt
   
   booking              Booking?       @relation(fields: [bookingId], references: [id], onDelete: SetNull)
   
+  @@index([sectionName])
   @@index([isAvailable])
   @@index([bookingId])
-  @@index([plusOneId])
   @@map("seats")
 }
 
@@ -269,6 +143,7 @@ model ActivityLog {
   ipAddress            String?
   
   user                 AdminUser?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  booking              Booking?       @relation(fields: [entityId], references: [id], onDelete: Cascade)
   
   @@index([entityType, entityId])
   @@index([timestamp])
@@ -276,7 +151,7 @@ model ActivityLog {
   @@map("activity_logs")
 }
 
-// Illuminate Enums
+// Enums
 enum BookingType {
   TICKET
   SPONSOR

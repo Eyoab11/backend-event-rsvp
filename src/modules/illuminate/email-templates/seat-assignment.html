@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seat Assignment - Illuminate Life</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f5f5; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+          
+          <!-- Header -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 40px 30px; text-align: center;">
+              <h1 style="margin: 0; color: #ffffff; font-size: 32px; font-weight: 700;">Illuminate Life</h1>
+              <p style="margin: 10px 0 0; color: #ffffff; font-size: 16px; opacity: 0.9;">Your Seat Assignment</p>
+            </td>
+          </tr>
+
+          <!-- Content -->
+          <tr>
+            <td style="padding: 40px 30px;">
+              <h2 style="margin: 0 0 20px; color: #1a1a1a; font-size: 24px; font-weight: 600;">Great News, {{customerName}}!</h2>
+              
+              <p style="margin: 0 0 20px; color: #4a4a4a; font-size: 16px; line-height: 1.6;">
+                Your seats have been assigned for Illuminate Life. We look forward to welcoming you!
+              </p>
+
+              <!-- Seat Assignment -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 8px; padding: 30px; margin: 30px 0;">
+                <tr>
+                  <td style="text-align: center;">
+                    <p style="margin: 0 0 10px; color: #ffffff; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.9;">Your Seats</p>
+                    <h3 style="margin: 0; color: #ffffff; font-size: 36px; font-weight: 700;">{{seatNumbers}}</h3>
+                    <p style="margin: 10px 0 0; color: #ffffff; font-size: 16px; opacity: 0.9;">Section: {{sectionName}}</p>
+                    {{#if tableNumber}}
+                    <p style="margin: 5px 0 0; color: #ffffff; font-size: 16px; opacity: 0.9;">Table: {{tableNumber}}</p>
+                    {{/if}}
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Booking Details -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8f9fa; border-radius: 8px; padding: 20px; margin: 30px 0;">
+                <tr>
+                  <td>
+                    <h3 style="margin: 0 0 15px; color: #1a1a1a; font-size: 18px; font-weight: 600;">Booking Details</h3>
+                    
+                    <table width="100%" cellpadding="8" cellspacing="0">
+                      <tr>
+                        <td style="color: #6b7280; font-size: 14px; padding: 8px 0;">Booking ID:</td>
+                        <td style="color: #1a1a1a; font-size: 14px; font-weight: 600; text-align: right; padding: 8px 0;">{{bookingId}}</td>
+                      </tr>
+                      <tr>
+                        <td style="color: #6b7280; font-size: 14px; padding: 8px 0;">Ticket Type:</td>
+                        <td style="color: #1a1a1a; font-size: 14px; font-weight: 600; text-align: right; padding: 8px 0;">{{ticketTier}}</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Event Details -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="border: 2px solid #e5e7eb; border-radius: 8px; padding: 20px; margin: 30px 0;">
+                <tr>
+                  <td>
+                    <h3 style="margin: 0 0 15px; color: #1a1a1a; font-size: 18px; font-weight: 600;">Event Details</h3>
+                    
+                    <p style="margin: 0 0 10px; color: #4a4a4a; font-size: 14px;">
+                      <strong style="color: #1a1a1a;">Date:</strong> Friday, June 12, 2026
+                    </p>
+                    <p style="margin: 0 0 10px; color: #4a4a4a; font-size: 14px;">
+                      <strong style="color: #1a1a1a;">Time:</strong> 6:00 PM – 11:30 PM
+                    </p>
+                    <p style="margin: 0 0 10px; color: #4a4a4a; font-size: 14px;">
+                      <strong style="color: #1a1a1a;">Venue:</strong> The Beverly Hilton
+                    </p>
+                    <p style="margin: 0; color: #4a4a4a; font-size: 14px;">
+                      <strong style="color: #1a1a1a;">Address:</strong> 9876 Wilshire Blvd, Beverly Hills, CA 90210
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Important Note -->
+              <div style="background-color: #dbeafe; border-left: 4px solid #3b82f6; padding: 16px; border-radius: 4px; margin: 30px 0;">
+                <h4 style="margin: 0 0 8px; color: #1e40af; font-size: 16px; font-weight: 600;">Important</h4>
+                <p style="margin: 0; color: #1e3a8a; font-size: 14px; line-height: 1.5;">
+                  Please save this email for your records. Present your booking ID at check-in on the day of the event.
+                </p>
+              </div>
+
+              <p style="margin: 30px 0 0; color: #4a4a4a; font-size: 16px; line-height: 1.6;">
+                We look forward to seeing you at Illuminate Life!
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #f8f9fa; padding: 30px; text-align: center; border-top: 1px solid #e5e7eb;">
+              <p style="margin: 0 0 10px; color: #6b7280; font-size: 14px;">
+                Questions? Contact us at <a href="mailto:gala@illuminatelifegala.com" style="color: #10b981; text-decoration: none;">gala@illuminatelifegala.com</a>
+              </p>
+              <p style="margin: 20px 0 0; color: #9ca3af; font-size: 12px;">
+                © 2026 Illuminate Life. All rights reserved.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

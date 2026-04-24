@@ -85,7 +85,7 @@ describe('QrService', () => {
     });
 
     it('should throw error for invalid data', async () => {
-      await expect(service.generateQrCodeImage(null)).rejects.toThrow();
+      await expect(service.generateQrCodeImage('')).rejects.toThrow();
     });
   });
 

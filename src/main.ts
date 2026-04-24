@@ -16,8 +16,9 @@ async function bootstrap() {
   
   // Enable CORS for frontend and admin panel
   const allowedOrigins = [
-    process.env.FRONTEND_URL || 'http://localhost:3000',
-    process.env.ADMIN_URL || 'http://localhost:3001',
+    process.env.FRONTEND_URL || 'http://localhost:3000', // RSVP User Website
+    process.env.ADMIN_URL || 'http://localhost:3001', // Admin Dashboard
+    process.env.ILLUMINATE_FRONTEND_URL || 'http://localhost:3003', // Illuminate Life Website
   ];
 
   app.enableCors({

@@ -11,6 +11,7 @@ import { CalendarModule } from './modules/calendar/calendar.module';
 import { EmailModule } from './modules/email/email.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { SchedulerModule } from './modules/scheduler/scheduler.module';
+import { IlluminateModule } from './modules/illuminate/illuminate.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { SchedulerModule } from './modules/scheduler/scheduler.module';
     EmailModule,
     AuthModule,
     SchedulerModule,
+    IlluminateModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -49,6 +49,7 @@ describe('CalendarService', () => {
         registrationId: 'REG-12345678',
         inviteId: 'invite-1',
         eventId: 'event-1',
+        checkedInAt: null,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -123,6 +124,7 @@ describe('CalendarService', () => {
         registrationId: 'REG-12345678',
         inviteId: 'invite-1',
         eventId: 'event-1',
+        checkedInAt: null,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -171,6 +173,7 @@ describe('CalendarService', () => {
         registrationId: 'REG-12345678',
         inviteId: 'invite-1',
         eventId: 'event-1',
+        checkedInAt: null,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
