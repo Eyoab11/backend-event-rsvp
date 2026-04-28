@@ -23,14 +23,47 @@ export class BookingService {
     private emailService: IlluminateEmailService,
   ) {}
 
+  /**
+   * Generate a sequential booking ID in format ILG0001, ILG0002, etc.
+   */
+  private async generateBookingId(): Promise<string> {
+    // Get the latest booking to determine the next number
+    const latestBooking = await this.prisma.booking.findFirst({
+      where: {
+        id: {
+          startsWith: 'ILG',
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    let nextNumber = 1;
+    if (latestBooking) {
+      // Extract the number from the ID (e.g., "ILG0001" -> 1)
+      const currentNumber = parseInt(latestBooking.id.substring(3), 10);
+      nextNumber = currentNumber + 1;
+    }
+
+    // Format as ILG#### (e.g., ILG0001, ILG0002, etc.)
+    return `ILG${nextNumber.toString().padStart(4, '0')}`;
+  }
+
   // Create ticket booking (admin — auto-confirmed)
   async createAdminBooking(
     dto: CreateTicketBookingDto,
     userId?: string,
     ipAddress?: string,
   ) {
+    const bookingId = await this.generateBookingId();
+    
     const booking = await this.prisma.booking.create({
       data: {
+        id: bookingId,
         type: 'TICKET',
         status: 'CONFIRMED',
         customerName: dto.customerName,
@@ -76,8 +109,11 @@ export class BookingService {
 
   // Create ticket booking
   async createTicketBooking(dto: CreateTicketBookingDto, ipAddress?: string) {
+    const bookingId = await this.generateBookingId();
+    
     const booking = await this.prisma.booking.create({
       data: {
+        id: bookingId,
         type: 'TICKET',
         status: 'PENDING',
         customerName: dto.customerName,
@@ -133,9 +169,12 @@ export class BookingService {
 
     // Parse sponsor tier amount from the tier string (e.g., "Beacon Gold — $25,000" -> 25000)
     const tierAmount = this.parseSponsorTierAmount(dto.sponsorTier);
+    
+    const bookingId = await this.generateBookingId();
 
     const booking = await this.prisma.booking.create({
       data: {
+        id: bookingId,
         type: 'SPONSOR',
         status: 'PENDING',
         customerName: dto.contactName,
@@ -194,9 +233,12 @@ export class BookingService {
 
     // Parse sponsor tier amount from the tier string (e.g., "Beacon Gold — $25,000" -> 25000)
     const tierAmount = this.parseSponsorTierAmount(dto.sponsorTier);
+    
+    const bookingId = await this.generateBookingId();
 
     const booking = await this.prisma.booking.create({
       data: {
+        id: bookingId,
         type: 'SPONSOR',
         status: 'CONFIRMED', // Auto-confirmed for admin-created sponsors
         customerName: dto.contactName,

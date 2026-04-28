@@ -105,7 +105,7 @@ enum AttendeeStatus {
 // Illuminate Life Gala - Additional Models
 
 model Booking {
-  id                   String         @id @default(cuid())
+  id                   String         @id
   type                 BookingType
   status               BookingStatus  @default(PENDING)
   createdAt            DateTime       @default(now())
