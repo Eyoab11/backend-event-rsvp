@@ -151,10 +151,11 @@ export class IlluminateEmailService {
       ? `\nTable: ${booking.tableNumber}`
       : '';
 
+    const shortId = booking.id;
     const description = [
       ILLUMINATE_EVENT.description,
       '',
-      `Booking ID: ${booking.id}`,
+      `Booking ID: ${shortId}`,
       `Ticket: ${booking.ticketName || booking.ticketTier || 'Ticket'}`,
       `Dress Code: ${ILLUMINATE_EVENT.dressCode}`,
       seatInfo,
@@ -231,6 +232,7 @@ export class IlluminateEmailService {
     const seatNumbers =
       (booking.seatNumbers ?? []).join(', ') || 'To be assigned';
     const tableNumber = booking.tableNumber || 'To be assigned';
+    const shortId = booking.id;
 
     // Generate QR code and calendar in parallel
     const [qrBuffer, calendarBuffer] = await Promise.all([
@@ -298,7 +300,7 @@ export class IlluminateEmailService {
                   <table width="100%" cellpadding="0" cellspacing="0">
                     <tr>
                       <td style="padding:7px 0;color:#888;font-size:13px;width:45%;">Booking ID</td>
-                      <td style="padding:7px 0;color:#0a0a0a;font-size:13px;font-weight:bold;">${booking.id}</td>
+                      <td style="padding:7px 0;color:#0a0a0a;font-size:13px;font-weight:bold;">${shortId}</td>
                     </tr>
                     <tr>
                       <td style="padding:7px 0;color:#888;font-size:13px;">Ticket Type</td>
@@ -353,7 +355,6 @@ export class IlluminateEmailService {
                     Your QR code is attached to this email as <strong>qr-code.png</strong>.<br>
                     Please present it at the entrance for check-in.
                   </p>
-                  <p style="margin:0;color:#888;font-size:12px;">Booking ID: <strong>${booking.id}</strong></p>
                 </td>
               </tr>
             </table>
@@ -462,6 +463,7 @@ export class IlluminateEmailService {
       (booking.seatNumbers ?? []).join(', ') || 'To be assigned';
     const oldSeats = oldSeatNumbers.join(', ');
     const tableNumber = booking.tableNumber || 'To be assigned';
+    const shortId = booking.id;
 
     // Generate NEW QR code and calendar
     const [qrBuffer, calendarBuffer] = await Promise.all([
@@ -539,7 +541,7 @@ export class IlluminateEmailService {
                   <table width="100%" cellpadding="0" cellspacing="0">
                     <tr>
                       <td style="padding:7px 0;color:#888;font-size:13px;width:45%;">Booking ID</td>
-                      <td style="padding:7px 0;color:#0a0a0a;font-size:13px;font-weight:bold;">${booking.id}</td>
+                      <td style="padding:7px 0;color:#0a0a0a;font-size:13px;font-weight:bold;">${shortId}</td>
                     </tr>
                     <tr>
                       <td style="padding:7px 0;color:#888;font-size:13px;">Ticket Type</td>
@@ -594,7 +596,6 @@ export class IlluminateEmailService {
                     A new QR code is attached to this email as <strong>qr-code.png</strong>.<br>
                     Please use this NEW QR code for check-in. Your previous QR code is no longer valid.
                   </p>
-                  <p style="margin:0;color:#888;font-size:12px;">Booking ID: <strong>${booking.id}</strong></p>
                 </td>
               </tr>
             </table>
@@ -692,12 +693,13 @@ export class IlluminateEmailService {
   }
 
   async sendTicketBookingConfirmation(booking: any) {
-    const subject = `Your Illuminate Life Gala Booking — ${booking.id}`;
+    const subject = `Your Illuminate Life Gala Booking Confirmation`;
 
     const tierLabel = booking.ticketName || booking.ticketTier || 'Ticket';
     const quantity = booking.quantity ?? 1;
     const pricePerUnit = Number(booking.pricePerUnit ?? 0).toFixed(2);
     const totalAmount = Number(booking.totalAmount ?? 0).toFixed(2);
+    const shortId = booking.id;
 
     // Check if this is a Circle of Illumination (Table of 10) booking
     const isCircleOfIllumination =
@@ -738,7 +740,7 @@ export class IlluminateEmailService {
                   <table width="100%" cellpadding="0" cellspacing="0">
                     <tr>
                       <td style="padding:6px 0;color:#666;font-size:14px;width:40%;">Booking ID</td>
-                      <td style="padding:6px 0;color:#0a0a0a;font-size:14px;font-weight:bold;">${booking.id}</td>
+                      <td style="padding:6px 0;color:#0a0a0a;font-size:14px;font-weight:bold;">${shortId}</td>
                     </tr>
                     <tr>
                       <td style="padding:6px 0;color:#666;font-size:14px;">Ticket Type</td>
@@ -785,7 +787,7 @@ export class IlluminateEmailService {
             </table>
 
             <p style="margin:0 0 24px;color:#555;font-size:14px;line-height:1.6;">
-              Please save your <strong>Booking ID: ${booking.id}</strong> for your records. 
+              Please save your <strong>Booking ID: ${shortId}</strong> for your records. 
               You will receive a follow-up email once your booking is confirmed with payment details.
             </p>
 
@@ -814,6 +816,7 @@ export class IlluminateEmailService {
 
   async sendSponsorInquiryConfirmation(booking: any) {
     const subject = 'Sponsorship Inquiry Received — Illuminate Life Gala';
+    const shortId = booking.id;
     const html = `
 <!DOCTYPE html><html><body style="font-family:Arial,sans-serif;background:#f4f4f4;padding:40px 0;">
   <table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:12px;margin:0 auto;overflow:hidden;max-width:600px;">
@@ -827,7 +830,7 @@ export class IlluminateEmailService {
       <table width="100%" style="background:#f9f6f0;border-radius:8px;margin:20px 0;">
         <tr><td style="padding:20px;">
           <p style="margin:0 0 12px;font-weight:bold;font-size:14px;text-transform:uppercase;letter-spacing:1px;">Inquiry Details</p>
-          <p style="margin:4px 0;font-size:14px;color:#555;">Inquiry ID: <strong>${booking.id}</strong></p>
+          <p style="margin:4px 0;font-size:14px;color:#555;">Inquiry ID: <strong>${shortId}</strong></p>
           <p style="margin:4px 0;font-size:14px;color:#555;">Company: <strong>${booking.companyName}</strong></p>
           <p style="margin:4px 0;font-size:14px;color:#555;">Sponsor Tier: <strong>${booking.sponsorTier}</strong></p>
         </td></tr>
@@ -844,6 +847,7 @@ export class IlluminateEmailService {
 
   async sendSponsorConfirmation(booking: any) {
     const subject = 'Sponsorship Confirmed — Illuminate Life Gala';
+    const shortId = booking.id;
     const html = `
 <!DOCTYPE html><html><body style="font-family:Arial,sans-serif;background:#f4f4f4;padding:40px 0;">
   <table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:12px;margin:0 auto;overflow:hidden;max-width:600px;">
@@ -857,7 +861,7 @@ export class IlluminateEmailService {
       <table width="100%" style="background:#f9f6f0;border-radius:8px;margin:20px 0;">
         <tr><td style="padding:20px;">
           <p style="margin:0 0 12px;font-weight:bold;font-size:14px;text-transform:uppercase;letter-spacing:1px;">Sponsorship Details</p>
-          <p style="margin:4px 0;font-size:14px;color:#555;">Booking ID: <strong>${booking.id}</strong></p>
+          <p style="margin:4px 0;font-size:14px;color:#555;">Booking ID: <strong>${shortId}</strong></p>
           <p style="margin:4px 0;font-size:14px;color:#555;">Company: <strong>${booking.companyName}</strong></p>
           <p style="margin:4px 0;font-size:14px;color:#555;">Sponsor Tier: <strong>${booking.sponsorTier}</strong></p>
           <p style="margin:4px 0;font-size:14px;color:#555;">Amount: <strong>$${Number(booking.totalAmount).toLocaleString()}</strong></p>
@@ -877,6 +881,7 @@ export class IlluminateEmailService {
   async sendSeatAssignmentConfirmation(booking: any) {
     const subject = `Your Seat Assignment — Illuminate Life Gala`;
     const seatNumbers = (booking.seatNumbers ?? []).join(', ') || 'TBD';
+    const shortId = booking.id;
     const html = `
 <!DOCTYPE html><html><body style="font-family:Arial,sans-serif;background:#f4f4f4;padding:40px 0;">
   <table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:12px;margin:0 auto;overflow:hidden;max-width:600px;">
@@ -890,7 +895,7 @@ export class IlluminateEmailService {
       <table width="100%" style="background:#f9f6f0;border-radius:8px;margin:20px 0;">
         <tr><td style="padding:20px;">
           <p style="margin:0 0 12px;font-weight:bold;font-size:14px;text-transform:uppercase;letter-spacing:1px;">Seat Details</p>
-          <p style="margin:4px 0;font-size:14px;color:#555;">Booking ID: <strong>${booking.id}</strong></p>
+          <p style="margin:4px 0;font-size:14px;color:#555;">Booking ID: <strong>${shortId}</strong></p>
           <p style="margin:4px 0;font-size:14px;color:#555;">Seat(s): <strong>${seatNumbers}</strong></p>
           <p style="margin:4px 0;font-size:14px;color:#555;">Table: <strong>${booking.tableNumber || 'N/A'}</strong></p>
         </td></tr>
@@ -912,7 +917,8 @@ export class IlluminateEmailService {
       new_branding: 'New Branding Inquiry',
     };
     const label = typeLabels[type] || 'New Booking';
-    const subject = `🔔 ${label} — ${booking.id}`;
+    const shortId = booking.id;
+    const subject = `🔔 ${label} — ${shortId}`;
 
     const tierInfo = booking.ticketTier
       ? `<p style="margin:4px 0;font-size:14px;color:#555;">Ticket Tier: <strong>${booking.ticketName || booking.ticketTier}</strong></p>
@@ -940,7 +946,7 @@ export class IlluminateEmailService {
       <table width="100%" style="background:#f0f4f9;border-radius:8px;margin-bottom:20px;">
         <tr><td style="padding:20px;">
           <p style="margin:0 0 12px;font-weight:bold;font-size:14px;text-transform:uppercase;letter-spacing:1px;">Booking</p>
-          <p style="margin:4px 0;font-size:14px;color:#555;">ID: <strong>${booking.id}</strong></p>
+          <p style="margin:4px 0;font-size:14px;color:#555;">ID: <strong>${shortId}</strong></p>
           ${tierInfo}
           <p style="margin:4px 0;font-size:14px;color:#555;">Time: <strong>${new Date().toLocaleString()}</strong></p>
         </td></tr>
@@ -1025,7 +1031,6 @@ export class IlluminateEmailService {
               Your QR code is attached to this email as <strong>qr-code.png</strong>.<br>
               Please present it at the entrance for check-in.
             </p>
-            <p style="margin:0;color:#888;font-size:12px;">QR Code: <strong>${plusOne.qrCode}</strong></p>
           </td>
         </tr>
       </table>
