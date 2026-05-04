@@ -5,7 +5,7 @@ import { createEvents, EventAttributes, DateArray } from 'ics';
 // Illuminate Life Gala — hardcoded event details for calendar generation
 const ILLUMINATE_EVENT = {
   name: 'Illuminate Life Gala',
-  date: new Date('2026-06-07T00:00:00Z'), // June 7, 2026
+  date: new Date('2026-10-15T00:00:00Z'), // October 15, 2026
   startTime: '18:00',
   endTime: '23:30',
   venueName: 'The Beverly Hilton',
@@ -1002,7 +1002,7 @@ export class IlluminateEmailService {
       <table width="100%" style="background:#f9f6f0;border-radius:8px;margin:20px 0;">
         <tr><td style="padding:20px;">
           <p style="margin:0 0 12px;font-weight:bold;font-size:14px;text-transform:uppercase;letter-spacing:1px;">Event Details</p>
-          <p style="margin:4px 0;font-size:14px;color:#555;">Date: <strong>Friday, June 12, 2026</strong></p>
+          <p style="margin:4px 0;font-size:14px;color:#555;">Date: <strong>Thursday, October 15, 2026</strong></p>
           <p style="margin:4px 0;font-size:14px;color:#555;">Time: <strong>6:00 PM - 11:30 PM</strong></p>
           <p style="margin:4px 0;font-size:14px;color:#555;">Venue: <strong>The Beverly Hilton</strong></p>
           <p style="margin:4px 0;font-size:14px;color:#555;">Address: <strong>9876 Wilshire Blvd, Beverly Hills, CA 90210</strong></p>
