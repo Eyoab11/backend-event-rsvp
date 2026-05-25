@@ -247,30 +247,51 @@ export class DashboardService {
       'Quantity',
       'Price Per Unit',
       'Total Amount',
+      'Table Number',
       'Seat Numbers',
-      'Section',
       'Created At',
     ];
 
-    const rows = bookings.map((b) => [
-      b.id,
-      b.type,
-      b.status,
-      b.customerName,
-      b.customerEmail,
-      b.customerPhone,
-      b.companyName || '',
-      b.ticketTier || '',
-      b.sponsorTier || '',
-      b.brandingType || '',
-      b.quantity,
-      b.pricePerUnit,
-      b.totalAmount,
-      b.seatNumbers.join(', '),
-      b.createdAt.toISOString(),
-    ]);
+    const rows = bookings.map((b) => {
+      // Derive table number from seat numbers if not explicitly set
+      let tableNum = b.tableNumber;
+      if (!tableNum && b.seatNumbers.length > 0) {
+        const match = b.seatNumbers[0].match(/^T(\d+)-/);
+        if (match) tableNum = match[1];
+      }
 
-    const csv = [headers, ...rows].map((row) => row.join(',')).join('\n');
+      return [
+        b.id,
+        b.type,
+        b.status,
+        b.customerName,
+        b.customerEmail,
+        b.customerPhone || '',
+        b.companyName || '',
+        b.ticketTier || '',
+        b.sponsorTier || '',
+        b.brandingType || '',
+        b.quantity,
+        b.pricePerUnit,
+        b.totalAmount,
+        tableNum ? `Table ${tableNum}` : '',
+        b.seatNumbers.join('; '),
+        b.createdAt.toISOString(),
+      ];
+    });
+
+    // Escape fields that may contain commas or quotes
+    const escapeField = (val: any): string => {
+      const str = String(val ?? '');
+      if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+
+    const csv = [headers, ...rows]
+      .map((row) => row.map(escapeField).join(','))
+      .join('\n');
 
     return csv;
   }
