@@ -137,11 +137,15 @@ model Booking {
   tablePreferences     String?        @db.Text
   message              String?        @db.Text
   
+  // Check-In (gala night)
+  checkedIn            Boolean        @default(false)
+  checkedInAt          DateTime?
+
   // Admin Management
   adminNotes           String?        @db.Text
   followUpDate         DateTime?
   assignedTo           String?
-  
+
   // Relations
   sponsor              Sponsor?
   branding             BrandingOpportunity?
@@ -152,6 +156,7 @@ model Booking {
   @@index([status])
   @@index([customerEmail])
   @@index([createdAt])
+  @@index([checkedIn])
   @@map("bookings")
 }
 

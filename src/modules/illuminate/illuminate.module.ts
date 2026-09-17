@@ -12,6 +12,7 @@ import { ActivityLogService } from './services/activity-log.service';
 import { DashboardService } from './services/dashboard.service';
 import { IlluminateEmailService } from './services/illuminate-email.service';
 import { PlusOneService } from './services/plus-one.service';
+import { CheckInService } from './services/check-in.service';
 
 // Controllers
 import { BookingController } from './controllers/booking.controller';
@@ -19,6 +20,7 @@ import { SponsorController } from './controllers/sponsor.controller';
 import { SeatController } from './controllers/seat.controller';
 import { DashboardController } from './controllers/dashboard.controller';
 import { PlusOneController } from './controllers/plus-one.controller';
+import { CheckInController } from './controllers/check-in.controller';
 
 @Module({
   imports: [PrismaModule, EmailModule, AuthModule, QrModule],
@@ -28,6 +30,7 @@ import { PlusOneController } from './controllers/plus-one.controller';
     SeatController,
     DashboardController,
     PlusOneController,
+    CheckInController,
   ],
   providers: [
     BookingService,
@@ -37,6 +40,7 @@ import { PlusOneController } from './controllers/plus-one.controller';
     DashboardService,
     IlluminateEmailService,
     PlusOneService,
+    CheckInService,
   ],
   exports: [
     BookingService,
@@ -45,6 +49,7 @@ import { PlusOneController } from './controllers/plus-one.controller';
     ActivityLogService,
     DashboardService,
     PlusOneService,
+    CheckInService,
   ],
 })
 export class IlluminateModule {}
